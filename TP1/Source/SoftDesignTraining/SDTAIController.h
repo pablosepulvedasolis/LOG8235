@@ -8,12 +8,34 @@
 #include "SDTAIController.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS(ClassGroup = AI, config = Game)
 class SOFTDESIGNTRAINING_API ASDTAIController : public AAIController
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 public:
-    virtual void Tick(float deltaTime) override;
+	virtual void Tick(float deltaTime) override;
+	void Move(APawn* const pawn, float deltaTime);
+	void Turn(APawn* const pawn);
+	void DetectWall(APawn* const pawn);
+
+private:
+	const float PI = 3.141592f;
+
+	UPROPERTY(EditAnywhere)
+		float acceleration = 20.0f; // m/s2
+	UPROPERTY(EditAnywhere)
+		float maxSpeed = 3.0f; // m/s
+	UPROPERTY(EditAnywhere)
+		float rotateSpeed = 1.0f;
+	UPROPERTY(EditAnywhere)
+		float sightDistance = 2.0f; // m
+
+	FVector speed = FVector(0.0f, 0.0f, 0.0f); // m/s
+	FVector dir = FVector(1.0f, 0.0f, 0.0f);
+	FVector targetDir = dir;
+	bool isTurningPositive = false;
+	bool isTurning = false;
+	bool lastRandomDirWas1 = false;
 };
