@@ -14,6 +14,15 @@
     return uWorld->LineTraceSingleByChannel(hitData, sourcePoint, targetPoint, ECC_Pawn, TraceParams);
 }
 
+/*static*/ FHitResult SDTUtils::RaycastInfo(UWorld* uWorld, FVector sourcePoint, FVector targetPoint)
+{
+    FHitResult hitData;
+    FCollisionQueryParams TraceParams(FName(TEXT("VictoreCore Trace")), true);
+
+    uWorld->LineTraceSingleByChannel(hitData, sourcePoint, targetPoint, ECC_Pawn, TraceParams);
+    return hitData;
+}
+
 bool SDTUtils::IsPlayerPoweredUp(UWorld * uWorld)
 {
     ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(uWorld, 0);

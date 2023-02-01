@@ -21,6 +21,7 @@ public:
 	void Move(APawn* const pawn, float deltaTime);
 	void Turn(APawn* const pawn);
 	void DetectWall(APawn* const pawn);
+	FVector GetNextTargetDir(FVector newDir, FHitResult wall);
 	virtual void BeginPlay() override;
 
 private:
