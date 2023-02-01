@@ -7,6 +7,8 @@
 
 #include "SDTAIController.generated.h"
 
+#define PI 3.141592f
+
 /**
  *
  */
@@ -21,14 +23,12 @@ public:
 	void DetectWall(APawn* const pawn);
 
 private:
-	const float PI = 3.141592f;
-
 	UPROPERTY(EditAnywhere)
 		float acceleration = 20.0f; // m/s2
 	UPROPERTY(EditAnywhere)
 		float maxSpeed = 3.0f; // m/s
 	UPROPERTY(EditAnywhere)
-		float rotateSpeed = 1.0f;
+		float deltaAngle = 1.0f;
 	UPROPERTY(EditAnywhere)
 		float sightDistance = 2.0f; // m
 
@@ -38,4 +38,6 @@ private:
 	bool isTurningPositive = false;
 	bool isTurning = false;
 	bool lastRandomDirWas1 = false;
+
+	bool IsTargetToTheLeft();
 };

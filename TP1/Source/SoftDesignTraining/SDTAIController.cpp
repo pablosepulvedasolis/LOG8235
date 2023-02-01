@@ -21,10 +21,13 @@ void ASDTAIController::Move(APawn* const pawn, float deltaTime)
     // Get new angle
     if (isTurning)
     {
-        pawn->AddActorWorldRotation(FRotator(0, rotateSpeed, 0));
-        dir = dir.RotateAngleAxis(rotateSpeed, FVector(0.0f, 0.0f, 1.0f));
+        pawn->AddActorWorldRotation(FRotator(0, deltaAngle, 0));
+        dir = dir.RotateAngleAxis(deltaAngle, FVector(0.0f, 0.0f, 1.0f));
         
-        if (di)
+        /*if (di)
+        {
+
+        }*/
     }
 
     // Get new speed
