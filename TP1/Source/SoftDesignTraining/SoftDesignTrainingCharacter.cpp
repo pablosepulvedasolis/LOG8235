@@ -41,4 +41,5 @@ void ASoftDesignTrainingCharacter::OnBeginOverlap(UPrimitiveComponent* Overlappe
         if(mainCharacter->IsPoweredUp())
             SetActorLocation(m_StartingPosition);
     }
+
 }

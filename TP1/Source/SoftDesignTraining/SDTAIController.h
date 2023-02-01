@@ -21,6 +21,7 @@ public:
 	void Move(APawn* const pawn, float deltaTime);
 	void Turn(APawn* const pawn);
 	void DetectWall(APawn* const pawn);
+	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -28,12 +29,12 @@ private:
 	UPROPERTY(EditAnywhere)
 		float maxSpeed = 3.0f; // m/s
 	UPROPERTY(EditAnywhere)
-		float deltaAngle = 1.0f;
+		float rotateSpeed = 500.0f;
 	UPROPERTY(EditAnywhere)
 		float sightDistance = 2.0f; // m
 
 	FVector speed = FVector(0.0f, 0.0f, 0.0f); // m/s
-	FVector dir = FVector(1.0f, 0.0f, 0.0f);
+	FVector dir;
 	FVector targetDir = dir;
 	bool isTurningPositive = false;
 	bool isTurning = false;
