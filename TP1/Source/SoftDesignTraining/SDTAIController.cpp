@@ -29,7 +29,6 @@ void ASDTAIController::Move(APawn* const pawn, float deltaTime)
     // Get new angle
     if (isTurning)
     {
-
         float deltaAngle = (isTurningPositive ? 1 : -1) * deltaTime * rotateSpeed;
 
         dir = dir.RotateAngleAxis(deltaAngle, FVector(0.0f, 0.0f, 1.0f));
@@ -71,7 +70,6 @@ void ASDTAIController::DetectWall(APawn* const pawn)
 
 void ASDTAIController::Turn(APawn* const pawn)
 {
-    UE_LOG(LogTemp, Warning, TEXT("TURNING %d"), 0);
     isTurning = true;
 
     FVector position = pawn->GetActorLocation();
@@ -101,10 +99,9 @@ void ASDTAIController::Turn(APawn* const pawn)
 
 FVector ASDTAIController::GetNextTargetDir(FVector newDir, FHitResult wall)
 {
-    UE_LOG(LogTemp, Warning, TEXT("newDir     : %s"), *newDir.ToString());
-    UE_LOG(LogTemp, Warning, TEXT("wall normal: %s"), *wall.Normal.ToString());
-    UE_LOG(LogTemp, Warning, TEXT("result     : %s"), *newDir.ProjectOnToNormal(wall.Normal).ToString());
-    return newDir.ProjectOnToNormal(wall.Normal);
+    FVector3d projected = FVector::VectorPlaneProject(newDir, wall.Normal);
+    projected.Normalize();
+    return projected;
 }
 
 bool ASDTAIController::IsTargetToTheLeft()
