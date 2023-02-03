@@ -10,6 +10,7 @@ class SOFTDESIGNTRAINING_API SDTUtils
 {
 public:
     static bool Raycast(UWorld* uWorld, FVector sourcePoint, FVector targetPoint);
+    static bool RaycastDeathFloor(UWorld* uWorld, FVector sourcePoint, FVector targetPoint);
     static FHitResult RaycastInfo(UWorld* uWorld, FVector sourcePoint, FVector targetPoint);
     static bool IsPlayerPoweredUp(UWorld* uWorld);
 };

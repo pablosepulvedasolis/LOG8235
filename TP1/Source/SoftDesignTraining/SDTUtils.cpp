@@ -14,6 +14,15 @@
     return uWorld->LineTraceSingleByChannel(hitData, sourcePoint, targetPoint, ECC_Pawn, TraceParams);
 }
 
+/*static*/ bool SDTUtils::RaycastDeathFloor(UWorld* uWorld, FVector sourcePoint, FVector targetPoint)
+{
+    FHitResult hitData;
+    FCollisionObjectQueryParams ObjectParam(COLLISION_DEATH_OBJECT);
+    FCollisionQueryParams TraceParams(FName(TEXT("VictoreCore Trace")), true);
+
+    return uWorld->LineTraceTestByObjectType(sourcePoint, targetPoint, COLLISION_DEATH_OBJECT, TraceParams);
+}
+
 /*static*/ FHitResult SDTUtils::RaycastInfo(UWorld* uWorld, FVector sourcePoint, FVector targetPoint)
 {
     FHitResult hitData;

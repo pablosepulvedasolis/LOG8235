@@ -20,7 +20,9 @@ public:
 	virtual void Tick(float deltaTime) override;
 	void Move(APawn* const pawn, float deltaTime);
 	void Turn(APawn* const pawn);
+	void TurnDeathFloor(APawn* const pawn);
 	void DetectWall(APawn* const pawn);
+	void DetectDeathFloor(APawn* const pawn);
 	FVector GetNextTargetDir(FVector newDir, FHitResult wall);
 	virtual void BeginPlay() override;
 
