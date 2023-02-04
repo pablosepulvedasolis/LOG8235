@@ -166,7 +166,7 @@ void ASDTAIController::IncrementPickUpCount()
 void ASDTAIController::DisplayTestResults(float deltaTime) 
 {
     timer += deltaTime;
-    GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("==========================="), *(GetPawn()->GetName())));
+    GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("===========================")));
     GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Green, FString::Printf(TEXT("Compteur de temps : %s"), *FString::FromInt(timer)));
     GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Green, FString::Printf(TEXT("Nombre de pickup ramassé : %s"), *FString::FromInt(pickupCount)));
     GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Green, FString::Printf(TEXT("Nombre de mort de l'agent : %s"), *FString::FromInt(deathCount)));
