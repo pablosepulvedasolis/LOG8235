@@ -153,15 +153,18 @@ bool ASDTAIController::IsTargetToTheLeft()
     return dir.CosineAngle2D(targetDir.RotateAngleAxis(PI / 2.0f, FVector3d(0.0f, 0.0f, 1.0f))) < 0;
 }
 
-void ASDTAIController::IncrementDeathCount() {
+void ASDTAIController::IncrementDeathCount() 
+{
     deathCount++;
 }
 
-void ASDTAIController::IncrementPickUpCount() {
+void ASDTAIController::IncrementPickUpCount() 
+{
     pickupCount++;
 }
 
-void ASDTAIController::DisplayTestResults(float deltaTime) {
+void ASDTAIController::DisplayTestResults(float deltaTime) 
+{
     timer += deltaTime;
     GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("==========================="), *(GetPawn()->GetName())));
     GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Green, FString::Printf(TEXT("Compteur de temps : %s"), *FString::FromInt(timer)));
@@ -169,7 +172,8 @@ void ASDTAIController::DisplayTestResults(float deltaTime) {
     GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Green, FString::Printf(TEXT("Nombre de mort de l'agent : %s"), *FString::FromInt(deathCount)));
     GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("==== %s ===="), *(GetPawn()->GetName())));
 
-    if (timer >= timeLength) {
+    if (timer >= timeLength) 
+    {
         timer = 0;
         deathCount = 0;
         pickupCount = 0;
