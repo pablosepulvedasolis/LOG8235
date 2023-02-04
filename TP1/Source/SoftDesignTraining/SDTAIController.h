@@ -23,6 +23,9 @@ public:
 	void TurnDeathFloor(APawn* const pawn);
 	void DetectWall(APawn* const pawn);
 	void DetectDeathFloor(APawn* const pawn);
+	void IncrementDeathCount();
+	void IncrementPickUpCount();
+	void DisplayTestResults(float deltaTime);
 	FVector GetNextTargetDir(FVector newDir, FHitResult wall);
 	virtual void BeginPlay() override;
 
@@ -35,6 +38,8 @@ private:
 		float rotateSpeed = 500.0f;
 	UPROPERTY(EditAnywhere)
 		float sightDistance = 2.0f; // m
+	UPROPERTY(EditAnywhere)
+		float timeLength = 60; // s
 
 	FVector speed = FVector(0.0f, 0.0f, 0.0f); // m/s
 	FVector dir;
@@ -44,4 +49,8 @@ private:
 	bool lastRandomDirWas1 = false;
 
 	bool IsTargetToTheLeft();
+
+	float timer = 0.f;
+	int pickupCount = 0;
+	int deathCount = 0;
 };
