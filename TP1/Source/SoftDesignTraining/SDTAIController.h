@@ -18,18 +18,32 @@ class SOFTDESIGNTRAINING_API ASDTAIController : public AAIController
 	GENERATED_BODY()
 public:
 	virtual void Tick(float deltaTime) override;
+
 	void Move(APawn* const pawn, float deltaTime);
 	void Turn(APawn* const pawn);
 	void TurnDeathFloor(APawn* const pawn);
 	void DetectWall(APawn* const pawn);
 	void DetectDeathFloor(APawn* const pawn);
-	void IncrementDeathCount();
-	void IncrementPickUpCount();
-	void DisplayTestResults(float deltaTime);
 	FVector GetNextTargetDir(FVector newDir, FHitResult wall);
 	virtual void BeginPlay() override;
 
+	void DrawVisionSphere(UWorld* world, APawn* pawn, int32 segments, FColor color);
+	void DrawVisionCone(UWorld* world, APawn* pawn);
+	bool IsInsideSphere(APawn* pawn, AActor* targetActor);
+	bool IsInsideCone(APawn* pawn, AActor* targetActor);
+	void PickUpDetection(APawn* pawn);
+	void ChasePlayer(APawn* pawn, AActor* player);
+
+	void IncrementDeathCount();
+	void IncrementPickUpCount();
+	void DisplayTestResults(float deltaTime);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
+		float detectionRadius = 400.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
+		float visionAngle = 50.0f * (PI / 180.0f);
 private:
+
 	UPROPERTY(EditAnywhere)
 		float acceleration = 20.0f; // m/s2
 	UPROPERTY(EditAnywhere)
@@ -47,7 +61,6 @@ private:
 	bool isTurningPositive = false;
 	bool isTurning = false;
 	bool lastRandomDirWas1 = false;
-
 	bool IsTargetToTheLeft();
 
 	float timer = 0.f;

@@ -7,12 +7,12 @@
 #include "SDTCollectible.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class SOFTDESIGNTRAINING_API ASDTCollectible : public AStaticMeshActor
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 public:
     ASDTCollectible();
 
@@ -21,10 +21,21 @@ public:
     bool IsOnCooldown();
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-    float m_CollectCooldownDuration = 10.f;
+        float m_CollectCooldownDuration = 10.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
         bool isMoveable = false;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
+        FVector acceleration = FVector(0.0f, 250.0f, 0.0f);
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
+        FVector speed = FVector(0.0f, 0.0f, 0.0f);
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
+        FVector maxSpeed = FVector(0.0f, 500.0f, 0.0f);
+    //debbug
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
+        bool rightWallDetected;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
+        bool leftWallDetected;
 
     virtual void Tick(float deltaTime) override;
     virtual void BeginPlay() override;
@@ -33,5 +44,6 @@ public:
 
 protected:
     FTimerHandle m_CollectCooldownTimer;
-	
+
+
 };

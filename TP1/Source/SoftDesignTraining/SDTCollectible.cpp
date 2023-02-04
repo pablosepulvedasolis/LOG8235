@@ -2,6 +2,7 @@
 
 #include "SDTCollectible.h"
 #include "SoftDesignTraining.h"
+#include <SoftDesignTraining/SDTUtils.h>
 
 ASDTCollectible::ASDTCollectible()
 {
@@ -35,4 +36,23 @@ bool ASDTCollectible::IsOnCooldown()
 void ASDTCollectible::Tick(float deltaTime)
 {
     Super::Tick(deltaTime);
+
+    if (isMoveable == true) {
+        /*bool*/ rightWallDetected = SDTUtils::Raycast(GetWorld(), GetActorLocation(), GetActorLocation() + FVector(0.0f, 700.0f, 0.0f));
+        /*bool*/ leftWallDetected = SDTUtils::Raycast(GetWorld(), GetActorLocation(), GetActorLocation() + FVector(0.0f, -700.0f, 0.0f));
+
+        if (rightWallDetected) {
+            acceleration = FVector(0.0f, -250.0f, 0.0f);
+        }
+        else if (leftWallDetected) {
+            acceleration = FVector(0.0f, 250.0f, 0.0f);
+        }
+
+        speed += acceleration * deltaTime;
+        if (abs(speed.Size()) > maxSpeed.Size()) speed = maxSpeed * speed.GetSafeNormal(); // put max speed in the right direction
+        FVector delataX = (speed * deltaTime);
+        SetActorLocation(GetActorLocation() + delataX, true);
+    }
+
+
 }
