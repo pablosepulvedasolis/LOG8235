@@ -2,7 +2,6 @@
 
 #include "SDTAIController.h"
 #include "SoftDesignTraining.h"
-#include "SoftDesignTraining/SoftDesignTrainingMainCharacter.h"
 #include "SDTUtils.h"
 #include "SoftDesignTraining/SDTCollectible.h"
 #include "SoftDesignTrainingCharacter.h"
@@ -15,87 +14,48 @@ void ASDTAIController::BeginPlay()
 
 void ASDTAIController::Tick( float deltaTime )
 {
-	APawn* pawn = GetPawn();
+	APawn* const pawn = GetPawn();
+	if ( pawn == nullptr ) return;
+	
+	HandleEntities( pawn );
+	EvadeWall( pawn );
+	EvadeDeathFloor( pawn );
+
+	Move( pawn, deltaTime );
+
+	DisplayTestResults( deltaTime );
+
+	DrawVisionSphere( pawn );
+	DrawVisionCone( pawn );
+}
+
+void ASDTAIController::HandleEntities( APawn* const pawn )
+{
+	ASoftDesignTrainingMainCharacter* player = GetPlayerToHandle( pawn );
+	if ( player != nullptr ) HandlePlayer( pawn, player );
+	else PickUpDetection( pawn );
+}
+
+ASoftDesignTrainingMainCharacter* ASDTAIController::GetPlayerToHandle( APawn* const pawn )
+{
 	TArray<AActor*> foundActors;
 	UGameplayStatics::GetAllActorsOfClass( GetWorld(), ASoftDesignTrainingMainCharacter::StaticClass(), foundActors );
-	if ( pawn )
-	{
-		// TODO PickUp Collectible 
 
-		if ( foundActors[0] )
-		{
+	if ( foundActors.Num() == 0 ) return nullptr;
+	if ( !IsInsideSphere( pawn, foundActors[0] ) ) return nullptr;
 
-
-			EvadeWall( pawn );
-			EvadeDeathFloor( pawn );
-			Move( pawn, deltaTime );
-
-			DisplayTestResults( deltaTime );
-
-			DrawVisionSphere( GetWorld(), pawn, 26, FColor( 181, 0, 0 ) );
-			FVector targetDirTemp = targetDir;
-
-			if ( IsInsideSphere( pawn, foundActors[0] ) )
-			{
-
-				if ( !SDTUtils::IsPlayerPoweredUp( GetWorld() ) )
-				{
-
-					ChasePlayer( pawn, foundActors[0] );
-				}
-				/* else {
-
-					 MoveToLocation(foundActors[0]->GetActorLocation() * FVector(-1.0f, -1.0f, 1.0f), 100.0f, true);
-					 FVector direction = foundActors[0]->GetActorLocation() * FVector(-1.0f, -1.0f, 1.0f) - pawn->GetActorLocation();
-					 pawn->SetActorRotation(direction.ToOrientationQuat());
-				 }*/
-			}
-			else
-			{
-				PickUpDetection( pawn );
-			}
-
-
-		}
-
-	}
-
+	return Cast<ASoftDesignTrainingMainCharacter>( foundActors[0] );
 }
-void  ASDTAIController::DrawVisionSphere( UWorld* world, APawn* pawn, int32 segments, FColor color )
+
+void ASDTAIController::HandlePlayer( APawn* const pawn, ASoftDesignTrainingMainCharacter* const player )
 {
-	DrawDebugSphere( world, pawn->GetActorLocation(), detectionRadius, segments, color );
+	bool isPlayerPoweredUp = SDTUtils::IsPlayerPoweredUp( GetWorld() );
+
+	if ( !isPlayerPoweredUp ) ChasePlayer( pawn, player );
+	else FleePlayer( pawn, player );
 }
 
-bool ASDTAIController::IsInsideSphere( APawn* pawn, AActor* targetActor )
-{
-
-	if ( FVector::Dist2D( pawn->GetActorLocation(), targetActor->GetActorLocation() ) > detectionRadius )
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
-}
-
-void  ASDTAIController::DrawVisionCone( UWorld* world, APawn* pawn )
-{
-	DrawDebugCone( world, pawn->GetActorLocation(), pawn->GetActorForwardVector(), detectionRadius, visionAngle, visionAngle, 32, FColor::Green );
-}
-bool ASDTAIController::IsInsideCone( APawn* pawn, AActor* targetActor )
-{
-
-	auto pawnForwardVector = pawn->GetActorForwardVector();
-	auto direction = targetActor->GetActorLocation() - pawn->GetActorLocation();
-
-	auto value = FVector::DotProduct( direction.GetSafeNormal(), pawnForwardVector.GetSafeNormal() );
-	auto angle = FMath::Acos( value );
-	auto isVisible = FMath::Abs( angle ) <= visionAngle;
-	return isVisible;
-}
-
-void ASDTAIController::PickUpDetection( APawn* pawn )
+void ASDTAIController::PickUpDetection( APawn* const pawn )
 {
 	TArray<AActor*> foundActors;
 	UGameplayStatics::GetAllActorsOfClass( GetWorld(), ASDTCollectible::StaticClass(), foundActors );
@@ -103,7 +63,7 @@ void ASDTAIController::PickUpDetection( APawn* pawn )
 	for ( AActor* actor : foundActors ) PickUpDetectionSingle( pawn, actor );
 }
 
-void ASDTAIController::PickUpDetectionSingle( APawn* pawn, AActor* collectibleActor )
+void ASDTAIController::PickUpDetectionSingle( APawn* const pawn, AActor* collectibleActor )
 {
 	ASDTCollectible* collectible = Cast<ASDTCollectible>( collectibleActor );
 
@@ -113,39 +73,48 @@ void ASDTAIController::PickUpDetectionSingle( APawn* pawn, AActor* collectibleAc
 	bool isCollectibleVisible = collectible->GetStaticMeshComponent()->IsVisible();
 	if ( !isCollectibleVisible ) return;
 
-	DrawVisionCone( GetWorld(), pawn ); // for debbuging
-
 	bool isCollectibleInCone = IsInsideCone( pawn, collectible );
 	if ( !isCollectibleInCone ) return;
-
-	DrawDebugSphere( GetWorld(), collectible->GetActorLocation(), 100.f, 32, FColor::Magenta ); //for debugging
 
 	bool obstacleDetected = SDTUtils::Raycast( GetWorld(), pawn->GetActorLocation(), collectible->GetActorLocation() );
 	if ( obstacleDetected ) return;
 
-	isTurning = true;
-	targetDir = FVector( FVector2D( collectible->GetActorLocation() - pawn->GetActorLocation() ), 0.0f ).GetSafeNormal();
-	isTurningPositive = IsTargetToTheLeft();
+	FVector targetDirection = FVector( FVector2D( collectible->GetActorLocation() - pawn->GetActorLocation() ), 0.0f ).GetSafeNormal();
+	SetTurning( pawn, targetDirection, true );
 }
 
-void ASDTAIController::ChasePlayer( APawn* pawn, AActor* player )
+void ASDTAIController::ChasePlayer( APawn* const pawn, AActor* player )
 {
+	bool isPlayerInsideSphere = IsInsideSphere( pawn, player );
+	if ( !isPlayerInsideSphere ) return;
 
-	if ( IsInsideSphere( pawn, player ) )
-	{
+	bool obstacleDetected = SDTUtils::Raycast( GetWorld(), pawn->GetActorLocation(), player->GetActorLocation() );
+	if ( obstacleDetected ) return;
 
-		bool obstacleDetected = SDTUtils::Raycast( GetWorld(), pawn->GetActorLocation(), player->GetActorLocation() );
+	FVector targetDirection = FVector( FVector2D( player->GetActorLocation() - pawn->GetActorLocation() ), 0.0f ).GetSafeNormal();
 
+	// If the AI chases but there is a wall in front of him, take it into account
+	bool hasObstacle = DetectWall( pawn, &targetDirection ) || DetectDeathFloor( pawn, &targetDirection );
+	if ( hasObstacle ) targetDirection = GetTargetDirectionFromOtherWalls( pawn, &targetDirection );
+	
+	SetTurning( pawn, targetDirection, true );
+}
 
-		if ( !obstacleDetected )
-		{
-			isTurning = true;
-			targetDir = FVector( FVector2D( player->GetActorLocation() - pawn->GetActorLocation() ), 0.0f ).GetSafeNormal();
-			isTurningPositive = IsTargetToTheLeft();
-		}
+void ASDTAIController::FleePlayer( APawn* const pawn, AActor* player )
+{
+	bool isPlayerInsideSphere = IsInsideSphere( pawn, player );
+	if ( !isPlayerInsideSphere ) return;
 
+	bool obstacleDetected = SDTUtils::Raycast( GetWorld(), pawn->GetActorLocation(), player->GetActorLocation() );
+	if ( obstacleDetected ) return;
 
-	}
+	FVector targetDirection = FVector( FVector2D( pawn->GetActorLocation() - player->GetActorLocation() ), 0.0f ).GetSafeNormal();
+
+	// If the AI flees but there is a wall in front of him, take it into account
+	bool hasObstacle = DetectWall( pawn, &targetDirection ) || DetectDeathFloor( pawn, &targetDirection );
+	if ( hasObstacle ) targetDirection = GetTargetDirectionFromOtherWalls( pawn, &targetDirection );
+
+	SetTurning( pawn, targetDirection, true );
 }
 
 void ASDTAIController::Move( APawn* const pawn, float deltaTime )
@@ -176,6 +145,7 @@ void ASDTAIController::Turn( APawn* const pawn, float deltaTime )
 	if ( ( isTurningPositive ? 1 : -1 ) * crossProduct < 0 )
 	{
 		isTurning = false;
+		canTurningBeOverriden = false;
 		dir = targetDir;
 		pawn->SetActorRotation( dir.Rotation() );
 	}
@@ -186,37 +156,73 @@ void ASDTAIController::Turn( APawn* const pawn, float deltaTime )
 void ASDTAIController::EvadeWall( APawn* const pawn )
 {
 	bool seesWall = DetectWall( pawn );
-	if ( seesWall && !isTurning ) StartTurning( pawn );
+	if ( seesWall && (!isTurning || canTurningBeOverriden) ) StartEvading(pawn);
 }
 
 void ASDTAIController::EvadeDeathFloor( APawn* const pawn )
 {
 	bool seesWall = DetectDeathFloor( pawn );
-	if ( seesWall && !isTurning ) StartTurning( pawn );
+	if ( seesWall && (!isTurning || canTurningBeOverriden) ) StartEvading( pawn );
 }
 
-void ASDTAIController::StartTurning( APawn* const pawn )
+void ASDTAIController::StartEvading( APawn* const pawn )
+{
+	FVector targetDirection = GetTargetDirectionFromOtherWalls( pawn );
+	SetTurning( pawn, targetDirection );
+}
+
+void ASDTAIController::SetTurning( APawn* const pawn, FVector targetDirection, bool overridable )
 {
 	isTurning = true;
-	targetDir = GetTargetDirectionFromOtherWalls( pawn );
+	targetDir = targetDirection;
 	isTurningPositive = IsTargetToTheLeft();
+	canTurningBeOverriden = overridable;
+}
+
+void  ASDTAIController::DrawVisionSphere( APawn* const pawn )
+{
+	DrawDebugSphere( GetWorld(), pawn->GetActorLocation(), detectionRadius, 24, FColor::Silver);
+}
+
+bool ASDTAIController::IsInsideSphere( APawn* const pawn, AActor* targetActor )
+{
+	float distance = FVector::Dist2D( pawn->GetActorLocation(), targetActor->GetActorLocation() );
+	return distance <= detectionRadius;
+}
+
+void  ASDTAIController::DrawVisionCone( APawn* const pawn )
+{
+	DrawDebugCone( GetWorld(), pawn->GetActorLocation(), pawn->GetActorForwardVector(), detectionRadius, visionAngle, visionAngle, 32, FColor::Green);
+}
+bool ASDTAIController::IsInsideCone( APawn* const pawn, AActor* targetActor )
+{
+
+	auto pawnForwardVector = pawn->GetActorForwardVector();
+	auto direction = targetActor->GetActorLocation() - pawn->GetActorLocation();
+
+	auto value = FVector::DotProduct( direction.GetSafeNormal(), pawnForwardVector.GetSafeNormal() );
+	auto angle = FMath::Acos( value );
+	auto isVisible = FMath::Abs( angle ) <= visionAngle;
+	return isVisible;
 }
 
 
 
-FVector3d ASDTAIController::GetTargetDirectionFromOtherWalls( APawn* const pawn )
+FVector3d ASDTAIController::GetTargetDirectionFromOtherWalls( APawn* const pawn, FVector* currentDirection )
 {
+	if ( currentDirection == nullptr ) currentDirection = &dir;
+
 	FVector position = pawn->GetActorLocation();
 
-	FVector dir1( -dir.Y, dir.X, 0.0f );
+	FVector dir1( -currentDirection->Y, currentDirection->X, 0.0f );
 	bool seesObstacle1 = DetectWall( pawn, &dir1 ) || DetectDeathFloor( pawn, &dir1 );
 
-	FVector dir2( dir.Y, -dir.X, 0.0f );
+	FVector dir2( currentDirection->Y, -currentDirection->X, 0.0f );
 	bool seesObstacle2 = DetectWall( pawn, &dir2 ) || DetectDeathFloor( pawn, &dir2 );
 
-	FHitResult result = SDTUtils::RaycastInfo( GetWorld(), position, position + dir * sightDistance * 100 );
+	FHitResult result = SDTUtils::RaycastInfo( GetWorld(), position, position + *currentDirection * sightDistance * 100 );
 
-	if ( seesObstacle1 && seesObstacle2 ) return -dir;
+	if ( seesObstacle1 && seesObstacle2 ) return -*currentDirection;
 	if ( seesObstacle1 && !seesObstacle2 ) return GetNextTargetDir( dir2, result );
 	if ( !seesObstacle1 && seesObstacle2 ) return GetNextTargetDir( dir1, result );
 

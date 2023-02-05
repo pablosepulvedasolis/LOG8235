@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "SoftDesignTraining/SoftDesignTrainingMainCharacter.h"
 
 #include "SDTAIController.generated.h"
 
@@ -21,33 +22,38 @@ public:
 
 	void Move( APawn* const pawn, float deltaTime );
 	void Turn( APawn* const pawn, float deltaTime );
-
+	
+	void HandleEntities( APawn* const pawn );
+	void HandlePlayer( APawn* const pawn, ASoftDesignTrainingMainCharacter* const player );
+	void PickUpDetection( APawn* const pawn );
 	void EvadeWall( APawn* const pawn );
 	void EvadeDeathFloor( APawn* const pawn );
-	void StartTurning( APawn* const pawn );
+	void StartEvading( APawn* const pawn );
+	void SetTurning( APawn* const pawn, FVector targetDirection, bool overridable = false );
 	
-	void PickUpDetection( APawn* pawn );
-	void PickUpDetectionSingle( APawn* pawn, AActor* collectibleActor );
+	void ChasePlayer( APawn* const pawn, AActor* player );
+	void FleePlayer( APawn* const pawn, AActor* player );
+	void PickUpDetectionSingle( APawn* const pawn, AActor* collectibleActor );
 	bool DetectWall( APawn* const pawn, FVector3d* dir = nullptr );
 	bool DetectDeathFloor( APawn* const pawn, FVector3d* dir = nullptr );
 
 	virtual void BeginPlay() override;
 
-	void DrawVisionSphere( UWorld* world, APawn* pawn, int32 segments, FColor color );
-	void DrawVisionCone( UWorld* world, APawn* pawn );
+	void DrawVisionSphere( APawn* const pawn );
+	void DrawVisionCone( APawn* const pawn );
 	
-	FVector3d GetTargetDirectionFromOtherWalls( APawn* const pawn );
+	ASoftDesignTrainingMainCharacter* GetPlayerToHandle( APawn* const pawn );
+	FVector3d GetTargetDirectionFromOtherWalls( APawn* const pawn, FVector* currentDirection = nullptr );
 	FVector GetNextTargetDir( FVector newDir, FHitResult wall );
-	bool IsInsideSphere( APawn* pawn, AActor* targetActor );
-	bool IsInsideCone( APawn* pawn, AActor* targetActor );
-	void ChasePlayer( APawn* pawn, AActor* player );
+	bool IsInsideSphere( APawn* const pawn, AActor* targetActor );
+	bool IsInsideCone( APawn* const pawn, AActor* targetActor );
 
 	void IncrementDeathCount();
 	void IncrementPickUpCount();
 	void DisplayTestResults( float deltaTime );
 
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = AI )
-		float detectionRadius = 400.0f;
+		float detectionRadius = 800.0f;
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = AI )
 		float visionAngle = 50.0f * ( PI / 180.0f );
 private:
@@ -68,6 +74,7 @@ private:
 	FVector targetDir = dir;
 	bool isTurningPositive = false;
 	bool isTurning = false;
+	bool canTurningBeOverriden = false;
 	bool zigzagToggle = false;
 	bool IsTargetToTheLeft();
 
