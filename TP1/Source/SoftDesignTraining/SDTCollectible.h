@@ -25,17 +25,18 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
         bool isMoveable = false;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-        FVector acceleration = FVector(0.0f, 250.0f, 0.0f);
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-        FVector speed = FVector(0.0f, 0.0f, 0.0f);
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-        FVector maxSpeed = FVector(0.0f, 500.0f, 0.0f);
-    //debbug
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-        bool rightWallDetected;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-        bool leftWallDetected;
+
+    /** Acceleration of the collectible in cm/s2. Value most be between 100 and 1000 cm/s2 */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "100.0", ClampMax = "1000.0"))
+        float acceleration = 250.0f;
+    /** Maximum speed of the collectible in cm/s. Value most be between 100 and 1000 cm/s */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "100.0", ClampMax = "1000.0"))
+        float maxSpeed = 500.0f;
+    /** Wall detection distance in cm. Value most be between 500 and 1000 cm */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI,meta = (ClampMin = "500.0" , ClampMax = "1000.0"))
+        float wallDetectionDistance = 700.0f;
+
+ 
 
     virtual void Tick(float deltaTime) override;
     virtual void BeginPlay() override;
@@ -44,6 +45,7 @@ public:
 
 protected:
     FTimerHandle m_CollectCooldownTimer;
+    FVector speed = FVector(0.0f, 0.0f, 0.0f);
 
 
 };

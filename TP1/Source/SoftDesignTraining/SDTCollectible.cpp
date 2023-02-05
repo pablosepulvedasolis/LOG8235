@@ -37,19 +37,20 @@ void ASDTCollectible::Tick(float deltaTime)
 {
     Super::Tick(deltaTime);
 
+
     if (isMoveable == true) {
-        /*bool*/ rightWallDetected = SDTUtils::Raycast(GetWorld(), GetActorLocation(), GetActorLocation() + FVector(0.0f, 700.0f, 0.0f));
-        /*bool*/ leftWallDetected = SDTUtils::Raycast(GetWorld(), GetActorLocation(), GetActorLocation() + FVector(0.0f, -700.0f, 0.0f));
+        bool rightWallDetected = SDTUtils::Raycast(GetWorld(), GetActorLocation(), GetActorLocation() + FVector(0.0f, wallDetectionDistance, 0.0f));
+        bool leftWallDetected = SDTUtils::Raycast(GetWorld(), GetActorLocation(), GetActorLocation() + FVector(0.0f, -wallDetectionDistance, 0.0f));
 
         if (rightWallDetected) {
-            acceleration = FVector(0.0f, -250.0f, 0.0f);
+           acceleration = -abs(acceleration);
         }
         else if (leftWallDetected) {
-            acceleration = FVector(0.0f, 250.0f, 0.0f);
+           acceleration = abs(acceleration);
         }
 
-        speed += acceleration * deltaTime;
-        if (abs(speed.Size()) > maxSpeed.Size()) speed = maxSpeed * speed.GetSafeNormal(); // put max speed in the right direction
+        speed += FVector(0.0f,acceleration,0.0f) * deltaTime;
+        if (abs(speed.Size()) > maxSpeed) speed = maxSpeed * speed.GetSafeNormal(); // put max speed in the right direction
         FVector delataX = (speed * deltaTime);
         SetActorLocation(GetActorLocation() + delataX, true);
     }
