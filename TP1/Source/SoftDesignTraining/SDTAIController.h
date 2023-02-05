@@ -55,21 +55,31 @@ public:
 	/** Radisus of spehere detection of collectibles and player in cm. Value must be between 300 and 1000 cm  */
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "300.0", ClampMax = "1000.0"))
 		float detectionRadius = 800.0f;
+	
 	/** Angel of cone detection of collectibles and player in dgrees . Value must be between 30 and 90°  */
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "10.0", ClampMax = "90.0"))
 		float visionAngle = 50.0f ;
+	
+	/** Acceleration of AI in m/s2 . Value must be between 1 and 100 m/s2 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "1.0", ClampMax = "100.0"))
+		float acceleration = 20.0f; // m/s2
+	
+	/** Max speed of AI in m/s . Value must be between 1 and 10 m/s */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "1.0", ClampMax = "10.0"))
+		float maxSpeed = 3.0f; // m/s
+	
+	/** AI wall detection distance in m . Value must be between 1 and 2.5 m/s   */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "1.0", ClampMax = "2.5"))
+		float sightDistance = 2.0f; // m
+	
+	
 private:
 
-	UPROPERTY( EditAnywhere )
-		float acceleration = 20.0f; // m/s2
-	UPROPERTY( EditAnywhere )
-		float maxSpeed = 3.0f; // m/s
-	UPROPERTY( EditAnywhere )
+	UPROPERTY(EditAnywhere)
 		float rotateSpeed = 500.0f;
-	UPROPERTY( EditAnywhere )
-		float sightDistance = 2.0f; // m
-	UPROPERTY( EditAnywhere )
+	UPROPERTY(EditAnywhere)
 		float timeLength = 60; // s
+
 
 	FVector speed = FVector( 0.0f, 0.0f, 0.0f ); // m/s
 	FVector dir;
