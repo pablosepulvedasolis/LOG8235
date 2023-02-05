@@ -52,10 +52,12 @@ public:
 	void IncrementPickUpCount();
 	void DisplayTestResults( float deltaTime );
 
-	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = AI )
+	/** Radisus of spehere detection of collectibles and player in cm. Value must be between 300 and 1000 cm  */
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "300.0", ClampMax = "1000.0"))
 		float detectionRadius = 800.0f;
-	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = AI )
-		float visionAngle = 50.0f * ( PI / 180.0f );
+	/** Angel of cone detection of collectibles and player in dgrees . Value must be between 30 and 90°  */
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "10.0", ClampMax = "90.0"))
+		float visionAngle = 50.0f ;
 private:
 
 	UPROPERTY( EditAnywhere )

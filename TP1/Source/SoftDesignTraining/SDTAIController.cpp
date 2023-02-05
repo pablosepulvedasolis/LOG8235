@@ -192,7 +192,7 @@ bool ASDTAIController::IsInsideSphere( APawn* const pawn, AActor* targetActor )
 
 void  ASDTAIController::DrawVisionCone( APawn* const pawn )
 {
-	DrawDebugCone( GetWorld(), pawn->GetActorLocation(), pawn->GetActorForwardVector(), detectionRadius, visionAngle, visionAngle, 32, FColor::Green);
+	DrawDebugCone( GetWorld(), pawn->GetActorLocation(), pawn->GetActorForwardVector(), detectionRadius, visionAngle * (PI / 180.0f), visionAngle * (PI / 180.0f), 32, FColor::Green);
 }
 bool ASDTAIController::IsInsideCone( APawn* const pawn, AActor* targetActor )
 {
@@ -202,7 +202,7 @@ bool ASDTAIController::IsInsideCone( APawn* const pawn, AActor* targetActor )
 
 	auto value = FVector::DotProduct( direction.GetSafeNormal(), pawnForwardVector.GetSafeNormal() );
 	auto angle = FMath::Acos( value );
-	auto isVisible = FMath::Abs( angle ) <= visionAngle;
+	auto isVisible = FMath::Abs( angle ) <= visionAngle * (PI / 180.0f);
 	return isVisible;
 }
 
