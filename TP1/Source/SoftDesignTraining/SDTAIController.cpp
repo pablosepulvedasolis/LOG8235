@@ -24,6 +24,9 @@ void ASDTAIController::Tick( float deltaTime )
 	Move( pawn, deltaTime );
 
 	DisplayTestResults( deltaTime );
+
+	DrawVisionSphere( pawn );
+	DrawVisionCone( pawn );
 }
 
 void ASDTAIController::HandleEntities( APawn* const pawn )
@@ -70,12 +73,8 @@ void ASDTAIController::PickUpDetectionSingle( APawn* const pawn, AActor* collect
 	bool isCollectibleVisible = collectible->GetStaticMeshComponent()->IsVisible();
 	if ( !isCollectibleVisible ) return;
 
-	DrawVisionCone( GetWorld(), pawn ); // for debbuging
-
 	bool isCollectibleInCone = IsInsideCone( pawn, collectible );
 	if ( !isCollectibleInCone ) return;
-
-	DrawDebugSphere( GetWorld(), collectible->GetActorLocation(), 100.f, 32, FColor::Magenta ); //for debugging
 
 	bool obstacleDetected = SDTUtils::Raycast( GetWorld(), pawn->GetActorLocation(), collectible->GetActorLocation() );
 	if ( obstacleDetected ) return;
@@ -114,8 +113,6 @@ void ASDTAIController::FleePlayer( APawn* const pawn, AActor* player )
 	// If the AI flees but there is a wall in front of him, take it into account
 	bool hasObstacle = DetectWall( pawn, &targetDirection ) || DetectDeathFloor( pawn, &targetDirection );
 	if ( hasObstacle ) targetDirection = GetTargetDirectionFromOtherWalls( pawn, &targetDirection );
-
-	// DrawDebugLine( GetWorld(), pawn->GetActorLocation(), pawn->GetActorLocation() + targetDirection * sightDistance * 100, FColor::Red, false, 1 );
 
 	SetTurning( pawn, targetDirection, true );
 }
@@ -182,27 +179,20 @@ void ASDTAIController::SetTurning( APawn* const pawn, FVector targetDirection, b
 	canTurningBeOverriden = overridable;
 }
 
-void  ASDTAIController::DrawVisionSphere( UWorld* world, APawn* const pawn, int32 segments, FColor color )
+void  ASDTAIController::DrawVisionSphere( APawn* const pawn )
 {
-	DrawDebugSphere( world, pawn->GetActorLocation(), detectionRadius, segments, color );
+	DrawDebugSphere( GetWorld(), pawn->GetActorLocation(), detectionRadius, 24, FColor::Silver);
 }
 
 bool ASDTAIController::IsInsideSphere( APawn* const pawn, AActor* targetActor )
 {
-
-	if ( FVector::Dist2D( pawn->GetActorLocation(), targetActor->GetActorLocation() ) > detectionRadius )
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
+	float distance = FVector::Dist2D( pawn->GetActorLocation(), targetActor->GetActorLocation() );
+	return distance <= detectionRadius;
 }
 
-void  ASDTAIController::DrawVisionCone( UWorld* world, APawn* const pawn )
+void  ASDTAIController::DrawVisionCone( APawn* const pawn )
 {
-	DrawDebugCone( world, pawn->GetActorLocation(), pawn->GetActorForwardVector(), detectionRadius, visionAngle, visionAngle, 32, FColor::Green );
+	DrawDebugCone( GetWorld(), pawn->GetActorLocation(), pawn->GetActorForwardVector(), detectionRadius, visionAngle, visionAngle, 32, FColor::Green);
 }
 bool ASDTAIController::IsInsideCone( APawn* const pawn, AActor* targetActor )
 {

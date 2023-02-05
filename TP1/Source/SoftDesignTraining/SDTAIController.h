@@ -39,8 +39,8 @@ public:
 
 	virtual void BeginPlay() override;
 
-	void DrawVisionSphere( UWorld* world, APawn* const pawn, int32 segments, FColor color );
-	void DrawVisionCone( UWorld* world, APawn* const pawn );
+	void DrawVisionSphere( APawn* const pawn );
+	void DrawVisionCone( APawn* const pawn );
 	
 	ASoftDesignTrainingMainCharacter* GetPlayerToHandle( APawn* const pawn );
 	FVector3d GetTargetDirectionFromOtherWalls( APawn* const pawn, FVector* currentDirection = nullptr );
@@ -53,7 +53,7 @@ public:
 	void DisplayTestResults( float deltaTime );
 
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = AI )
-		float detectionRadius = 400.0f;
+		float detectionRadius = 800.0f;
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = AI )
 		float visionAngle = 50.0f * ( PI / 180.0f );
 private:
