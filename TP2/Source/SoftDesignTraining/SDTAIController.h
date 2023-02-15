@@ -54,7 +54,9 @@ protected:
     void UpdatePlayerInteraction(float deltaTime);
 
 private:
+    AActor* closest;
     virtual void GoToBestTarget(float deltaTime) override;
     virtual void ChooseBehavior(float deltaTime) override;
     virtual void ShowNavigationPath() override;
+    UNavigationPath* FindClosestCollectible(UWorld* world);
 };

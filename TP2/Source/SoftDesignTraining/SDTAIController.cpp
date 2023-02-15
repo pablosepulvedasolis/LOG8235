@@ -11,6 +11,9 @@
 #include "SDTUtils.h"
 #include "EngineUtils.h"
 
+#include "NavigationSystem.h"
+#include "float.h"
+
 ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
 {
@@ -19,6 +22,60 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
 void ASDTAIController::GoToBestTarget(float deltaTime)
 {
     //Move to target depending on current behavior
+    UWorld* world = GetPawn()->GetWorld();
+
+    UNavigationPath* shortestPath = FindClosestCollectible(world);
+    FVector collPos = closest->GetActorLocation();
+    if (shortestPath)
+    {
+        bool first = true;
+        FVector prevPoint;
+        UE_LOG(LogTemp, Warning, TEXT("test1: %d"), shortestPath->PathPoints.Num());
+        for (FVector point : shortestPath->PathPoints)
+        {
+            DrawDebugSphere(world, point, 10.0f, 4, FColor::Blue);
+            if (!first) {
+                DrawDebugLine(world, prevPoint, point, FColor::Red, false);
+            }
+            first = false;
+            prevPoint = point;
+        }
+    }
+    //UE_LOG(LogTemp, Warning, TEXT("min: %f"), min);
+
+}
+
+UNavigationPath* ASDTAIController::FindClosestCollectible(UWorld* world)
+{
+    TArray<AActor*> outCollectibles;
+    UGameplayStatics::GetAllActorsOfClass(world, ASDTCollectible::StaticClass(), outCollectibles);
+    UNavigationSystemV1* navSys = UNavigationSystemV1::GetCurrent(world);
+
+    UNavigationPath* shortestPath = nullptr;
+    double min = DBL_MAX;
+    for (AActor* collectible : outCollectibles)
+    {
+        UNavigationPath* path = navSys->FindPathToLocationSynchronously(world, GetPawn()->GetActorLocation(), collectible->GetActorLocation());
+
+        double sum = 0;
+        FVector prev;
+        bool first = true;
+        for (FVector point : path->PathPoints)
+        {
+            if (!first) {
+                sum += (point - prev).Size();
+            }
+            first = false;
+            prev = point;
+        }
+        if (min > sum) {
+            min = sum;
+            closest = collectible;
+            shortestPath = path;
+        }
+    }
+
+    return shortestPath;
 }
 
 void ASDTAIController::OnMoveToTarget()
