@@ -13,6 +13,7 @@
 
 #include "NavigationSystem.h"
 #include "float.h"
+#include "AI/Navigation/NavigationTypes.h"
 
 ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
@@ -22,20 +23,19 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
 void ASDTAIController::GoToBestTarget(float deltaTime)
 {
     //Move to target depending on current behavior
-    UWorld* world = GetPawn()->GetWorld();
 
-    UNavigationPath* shortestPath = FindClosestCollectible(world);
-    FVector collPos = closest->GetActorLocation();
+    UNavigationPath* shortestPath = FindClosestCollectible();
     if (shortestPath)
     {
+        path = shortestPath;
         bool first = true;
         FVector prevPoint;
         UE_LOG(LogTemp, Warning, TEXT("test1: %d"), shortestPath->PathPoints.Num());
         for (FVector point : shortestPath->PathPoints)
         {
-            DrawDebugSphere(world, point, 10.0f, 4, FColor::Blue);
+            DrawDebugSphere(GetWorld(), point, 10.0f, 4, FColor::Blue);
             if (!first) {
-                DrawDebugLine(world, prevPoint, point, FColor::Red, false);
+                DrawDebugLine(GetWorld(), prevPoint, point, FColor::Red, false);
             }
             first = false;
             prevPoint = point;
@@ -45,22 +45,22 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 
 }
 
-UNavigationPath* ASDTAIController::FindClosestCollectible(UWorld* world)
+UNavigationPath* ASDTAIController::FindClosestCollectible()
 {
     TArray<AActor*> outCollectibles;
-    UGameplayStatics::GetAllActorsOfClass(world, ASDTCollectible::StaticClass(), outCollectibles);
-    UNavigationSystemV1* navSys = UNavigationSystemV1::GetCurrent(world);
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASDTCollectible::StaticClass(), outCollectibles);
+    UNavigationSystemV1* navSys = UNavigationSystemV1::GetCurrent(GetWorld());
 
     UNavigationPath* shortestPath = nullptr;
     double min = DBL_MAX;
     for (AActor* collectible : outCollectibles)
     {
-        UNavigationPath* path = navSys->FindPathToLocationSynchronously(world, GetPawn()->GetActorLocation(), collectible->GetActorLocation());
+        UNavigationPath* collectiblePath = navSys->FindPathToLocationSynchronously(GetWorld(), GetPawn()->GetActorLocation(), collectible->GetActorLocation());
 
         double sum = 0;
         FVector prev;
         bool first = true;
-        for (FVector point : path->PathPoints)
+        for (FVector point : collectiblePath->PathPoints)
         {
             if (!first) {
                 sum += (point - prev).Size();
@@ -70,8 +70,7 @@ UNavigationPath* ASDTAIController::FindClosestCollectible(UWorld* world)
         }
         if (min > sum) {
             min = sum;
-            closest = collectible;
-            shortestPath = path;
+            shortestPath = collectiblePath;
         }
     }
 
@@ -128,6 +127,22 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
 
     //Set behavior based on hit
+    if (detectionHit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER)
+    {
+        UNavigationSystemV1* navSys = UNavigationSystemV1::GetCurrent(GetWorld());
+        path = navSys->FindPathToLocationSynchronously(GetWorld(), GetPawn()->GetActorLocation(), detectionHit.GetActor()->GetActorLocation());
+        bool first = true;
+        FVector prevPoint;
+        for (FVector point : path->PathPoints)
+        {
+            DrawDebugSphere(GetWorld(), point, 10.0f, 4, FColor::Blue);
+            if (!first) {
+                DrawDebugLine(GetWorld(), prevPoint, point, FColor::Red, false);
+            }
+            first = false;
+            prevPoint = point;
+        }
+    }
 
     DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
 }
