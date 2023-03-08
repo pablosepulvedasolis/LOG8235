@@ -41,8 +41,11 @@ void USDTPathFollowingComponent::SetMoveSegment(int32 segmentStartIndex)
         //Handle starting jump
     }
     else
-    {
+    {   
         //Handle normal segments
+        /*for (FVector point : shortestPath->PathPoints)
+        {
+        }*/
     }
 }
 
