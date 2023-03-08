@@ -15,8 +15,10 @@ USDTPathFollowingComponent::USDTPathFollowingComponent(const FObjectInitializer&
 
 void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
 {
+    Super::FollowPathSegment(DeltaTime);
     const TArray<FNavPathPoint>& points = Path->GetPathPoints();
     const FNavPathPoint& segmentStart = points[MoveSegmentStartIndex];
+    // UE_LOG(LogTemp, Warning, TEXT("FollowPathSegment"));
 
     if (SDTUtils::HasJumpFlag(segmentStart))
     {
@@ -25,11 +27,13 @@ void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
     else
     {
         //update navigation along path
+        
     }
 }
 
 void USDTPathFollowingComponent::SetMoveSegment(int32 segmentStartIndex)
 {
+    // UE_LOG(LogTemp, Warning, TEXT("SetMoveSegment"));
     Super::SetMoveSegment(segmentStartIndex);
 
     const TArray<FNavPathPoint>& points = Path->GetPathPoints();
@@ -42,7 +46,7 @@ void USDTPathFollowingComponent::SetMoveSegment(int32 segmentStartIndex)
     }
     else
     {
-        //Handle normal segments
+        //Handle normal movement
     }
 }
 

@@ -19,30 +19,40 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
 {
 }
 
+FVector* FindTarget(UWorld* world, FVector location)
+{
+    TArray<AActor*> outCollectibles;
+    UGameplayStatics::GetAllActorsOfClass(world, ASDTCollectible::StaticClass(), outCollectibles);
+
+    FVector* closestLocation = nullptr;
+    double min = DBL_MAX;
+
+    for (AActor* actor : outCollectibles)
+    {
+        ASDTCollectible* collectible = Cast<ASDTCollectible>(actor);
+        if (collectible->IsOnCooldown()) continue;
+
+        FVector collectibleLocation = collectible->GetActorLocation();
+        float dist = FVector::Distance(location, collectibleLocation);
+        if (dist >= min) continue;
+        
+        closestLocation = &collectibleLocation;
+        min = dist;
+    }
+
+    return closestLocation;
+}
+
 void ASDTAIController::GoToBestTarget(float deltaTime)
 {
     //Move to target depending on current behavior
-    UWorld* world = GetPawn()->GetWorld();
 
-    UNavigationPath* shortestPath = FindClosestCollectible(world);
-    FVector collPos = closest->GetActorLocation();
-    if (shortestPath)
-    {
-        bool first = true;
-        FVector prevPoint;
-        UE_LOG(LogTemp, Warning, TEXT("test1: %d"), shortestPath->PathPoints.Num());
-        for (FVector point : shortestPath->PathPoints)
-        {
-            DrawDebugSphere(world, point, 10.0f, 4, FColor::Blue);
-            if (!first) {
-                DrawDebugLine(world, prevPoint, point, FColor::Red, false);
-            }
-            first = false;
-            prevPoint = point;
-        }
-    }
-    //UE_LOG(LogTemp, Warning, TEXT("min: %f"), min);
+    FVector* target = FindTarget(GetPawn()->GetWorld(), GetPawn()->GetActorLocation());
+    if (target == nullptr) return;
 
+    //UE_LOG(LogTemp, Warning, TEXT("moveto %s"), *target->ToString());
+    this->MoveToLocation(*target);
+    OnMoveToTarget();
 }
 
 UNavigationPath* ASDTAIController::FindClosestCollectible(UWorld* world)
@@ -93,6 +103,27 @@ void ASDTAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollow
 void ASDTAIController::ShowNavigationPath()
 {
     //Show current navigation path DrawDebugLine and DrawDebugSphere
+
+    UWorld* world = GetPawn()->GetWorld();
+    FNavPathSharedPtr path = GetPathFollowingComponent()->GetPath();
+    if (!path) return;
+    
+    bool first = true;
+    FVector prevPoint;
+
+    UE_LOG(LogTemp, Warning, TEXT("points"));
+    for (FNavPathPoint& point : path->GetPathPoints())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("  %s"), *point.Location.ToString());
+
+        DrawDebugSphere(world, point, 10.0f, 4, FColor::Blue);
+        if (!first) {
+            DrawDebugLine(world, prevPoint, point, FColor::Red, false);
+            first = false;
+        }
+        
+        prevPoint = point;
+    }
 }
 
 void ASDTAIController::ChooseBehavior(float deltaTime)
