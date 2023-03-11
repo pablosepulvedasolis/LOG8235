@@ -14,6 +14,8 @@
 #include "NavigationSystem.h"
 #include "float.h"
 
+#include "SoftDesignTrainingMainCharacter.h"
+
 ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
 {
@@ -53,15 +55,40 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
     //UE_LOG(LogTemp, Warning, TEXT("moveto %s"), *target->ToString());
     //this->MoveToLocation(*target);
     //OnMoveToTarget();
+   
 
-    UNavigationPath* path = FindClosestCollectible(GetWorld());
-    FVector prev;
-     for (FVector point : path->PathPoints)
-     {
-         MoveToLocation(point);
-         prev = point;
-         OnMoveToTarget();
+    if (state == State::Collect) {
+
+        UNavigationPath* path = FindClosestCollectible(GetWorld());
+        for (FVector point : path->PathPoints)
+        {
+            speed = 100.0;
+            MoveToLocation(point);
+           
         }
+
+    }
+    else if (state == State::Chase) {
+        ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+        if (!playerCharacter)
+            return;
+        MoveToLocation(playerCharacter->GetActorLocation());
+        speed = 300.0;
+    }
+    else if (state == State::Flee) {
+        UNavigationPath* path = FindFarthestFleeLocation(GetWorld());
+        for (FVector point : path->PathPoints)
+        {
+            MoveToLocation(point);
+            speed = 300.0;
+
+        }
+
+
+    }
+    OnMoveToTarget();
+
+    
     
 
 }
@@ -76,6 +103,9 @@ UNavigationPath* ASDTAIController::FindClosestCollectible(UWorld* world)
     double min = DBL_MAX;
     for (AActor* collectible : outCollectibles)
     {
+        ASDTCollectible* col = Cast<ASDTCollectible>(collectible);
+        if (col->IsOnCooldown()) continue;
+
         UNavigationPath* path = navSys->FindPathToLocationSynchronously(world, GetPawn()->GetActorLocation(), collectible->GetActorLocation());
 
         double sum = 0;
@@ -97,6 +127,40 @@ UNavigationPath* ASDTAIController::FindClosestCollectible(UWorld* world)
     }
 
     return shortestPath;
+}
+
+UNavigationPath* ASDTAIController::FindFarthestFleeLocation(UWorld* world)
+{
+   
+    TArray<AActor*> outFleeLocations;
+    UGameplayStatics::GetAllActorsOfClass(world, ASDTFleeLocation::StaticClass(), outFleeLocations);
+    UNavigationSystemV1* navSys = UNavigationSystemV1::GetCurrent(world);
+
+    UNavigationPath* longestPath = nullptr;
+    double max = 0.0;
+    for (AActor* fleeLocation : outFleeLocations)
+    {
+        UNavigationPath* path = navSys->FindPathToLocationSynchronously(world, GetPawn()->GetActorLocation(), fleeLocation->GetActorLocation());
+
+        double sum = 0;
+        FVector  prev;
+        //bool first = true;
+        for (FVector point : path->PathPoints)
+        {
+            //if (!first) {
+            sum += (point - prev).Size();
+            //}
+            //first = false;
+            prev = point;
+        }
+        if (max > sum) {
+            max = sum;
+            farthestFleeLocation = fleeLocation;
+            longestPath = path;
+        }
+    }
+
+    return longestPath;
 }
 
 void ASDTAIController::OnMoveToTarget()
@@ -142,6 +206,50 @@ void ASDTAIController::ChooseBehavior(float deltaTime)
     UpdatePlayerInteraction(deltaTime);
 }
 
+void  ASDTAIController::DrawVisionSphere(APawn* const pawn)
+{
+    DrawDebugSphere(GetWorld(), pawn->GetActorLocation(), detectionRadius, 24, FColor::Silver);
+}
+
+bool ASDTAIController::IsInsideSphere(APawn* const pawn, AActor* targetActor)
+{
+
+    float distance = FVector::Dist2D(pawn->GetActorLocation(), targetActor->GetActorLocation());
+    return distance <= detectionRadius;
+}
+
+void  ASDTAIController::DrawVisionCone(APawn* const pawn)
+{
+    DrawDebugCone(GetWorld(), pawn->GetActorLocation(), pawn->GetActorForwardVector(), detectionRadius, visionAngle * (PI / 180.0f), visionAngle * (PI / 180.0f), 32, FColor::Green);
+}
+bool ASDTAIController::IsInsideCone(APawn* const pawn, AActor* targetActor)
+{
+
+    auto pawnForwardVector = pawn->GetActorForwardVector();
+    auto direction = targetActor->GetActorLocation() - pawn->GetActorLocation();
+
+    auto value = FVector::DotProduct(direction.GetSafeNormal(), pawnForwardVector.GetSafeNormal());
+    auto angle = FMath::Acos(value);
+    auto isVisible = FMath::Abs(angle) <= visionAngle * (PI / 180.0f);
+    return isVisible;
+}
+
+bool  ASDTAIController::IsVisible(APawn* const pawn, AActor* player)
+{
+    bool isPlayerInsideSphere = IsInsideSphere(pawn, player);
+    if (!isPlayerInsideSphere) return false;
+
+    bool isPlayerInsideCone = IsInsideCone(pawn, player);
+    if (!isPlayerInsideCone) return false;
+
+    bool obstacleDetected = SDTUtils::Raycast(GetWorld(), pawn->GetActorLocation(), player->GetActorLocation());
+    if (obstacleDetected) return false;
+
+    return true;
+
+
+}
+
 void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 {
     //finish jump before updating AI state
@@ -170,9 +278,37 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
 
     //Set behavior based on hit
+     
+    ASoftDesignTrainingMainCharacter* playerActor = dynamic_cast<ASoftDesignTrainingMainCharacter*>(detectionHit.GetActor());
+    
+    
+    // player detected 
+    if (playerActor != nullptr)
+    {
+        if (playerActor->IsPoweredUp()) {
+            state = State::Flee;
 
+            
+            
+        }
+        else {
+            if (IsVisible(GetPawn(), detectionHit.GetActor())) {
+                state = State::Chase;
+            }
+           
+        }
+
+    }
+    // collectible detected 
+    else {
+        state = State::Collect;
+    }
+    DrawVisionCone(GetPawn());
+    DrawVisionSphere(GetPawn());
     DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
 }
+
+
 
 void ASDTAIController::GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit)
 {

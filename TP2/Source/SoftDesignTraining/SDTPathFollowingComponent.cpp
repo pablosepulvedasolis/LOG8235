@@ -51,6 +51,7 @@ void USDTPathFollowingComponent::SetMoveSegment(int32 segmentStartIndex)
     else
     {
         //Handle normal movement
+        Cast<UCharacterMovementComponent>(MovementComp)->SetMovementMode(MOVE_Walking);
     }
 }
 

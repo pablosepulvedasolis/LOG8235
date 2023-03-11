@@ -45,8 +45,37 @@ public:
     bool Landing = false;
 
     //my code 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI)
-    double speed = 100.0;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI)
+    double speed = 0.0;
+
+    /** Radisus of spehere detection of collectibles and player in cm. Value must be between 300 and 1000 cm  */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "300.0", ClampMax = "1000.0"))
+        float detectionRadius = 800.0f;
+
+    /** Angel of cone detection of collectibles and player in dgrees . Value must be between 30 and 90°  */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, meta = (ClampMin = "10.0", ClampMax = "90.0"))
+        float visionAngle = 50.0f;
+
+    enum State
+    {
+        Collect,
+        Chase,
+        Flee
+
+    };
+    State state = State::Collect;
+
+    bool IsInsideSphere(APawn* const pawn, AActor* targetActor);
+    bool IsInsideCone(APawn* const pawn, AActor* targetActor);
+
+    void DrawVisionSphere(APawn* const pawn);
+    void DrawVisionCone(APawn* const pawn);
+
+    bool IsVisible(APawn* const pawn, AActor* player);
+
+    UNavigationPath* FindFarthestFleeLocation(UWorld* world);
+
+    
 
 
 public:
@@ -60,6 +89,7 @@ protected:
 
 private:
     AActor* closest;
+    AActor* farthestFleeLocation;
     virtual void GoToBestTarget(float deltaTime) override;
     virtual void ChooseBehavior(float deltaTime) override;
     virtual void ShowNavigationPath() override;
