@@ -47,12 +47,23 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 {
     //Move to target depending on current behavior
 
-    FVector* target = FindTarget(GetPawn()->GetWorld(), GetPawn()->GetActorLocation());
-    if (target == nullptr) return;
+   // FVector* target = FindTarget(GetPawn()->GetWorld(), GetPawn()->GetActorLocation());
+   //if (target == nullptr) return;
 
     //UE_LOG(LogTemp, Warning, TEXT("moveto %s"), *target->ToString());
-    this->MoveToLocation(*target);
-    OnMoveToTarget();
+    //this->MoveToLocation(*target);
+    //OnMoveToTarget();
+
+    UNavigationPath* path = FindClosestCollectible(GetWorld());
+    FVector prev;
+     for (FVector point : path->PathPoints)
+     {
+         MoveToLocation(point);
+         prev = point;
+         OnMoveToTarget();
+        }
+    
+
 }
 
 UNavigationPath* ASDTAIController::FindClosestCollectible(UWorld* world)
@@ -68,14 +79,14 @@ UNavigationPath* ASDTAIController::FindClosestCollectible(UWorld* world)
         UNavigationPath* path = navSys->FindPathToLocationSynchronously(world, GetPawn()->GetActorLocation(), collectible->GetActorLocation());
 
         double sum = 0;
-        FVector prev;
+        FVector  prev;
         bool first = true;
         for (FVector point : path->PathPoints)
         {
-            if (!first) {
+            //if (!first) {
                 sum += (point - prev).Size();
-            }
-            first = false;
+            //}
+            //first = false;
             prev = point;
         }
         if (min > sum) {
@@ -109,18 +120,18 @@ void ASDTAIController::ShowNavigationPath()
     if (!path) return;
     
     bool first = true;
-    FVector prevPoint;
+    FNavPathPoint prevPoint;
 
     UE_LOG(LogTemp, Warning, TEXT("points"));
     for (FNavPathPoint& point : path->GetPathPoints())
     {
         UE_LOG(LogTemp, Warning, TEXT("  %s"), *point.Location.ToString());
 
-        DrawDebugSphere(world, point, 10.0f, 4, FColor::Blue);
-        if (!first) {
-            DrawDebugLine(world, prevPoint, point, FColor::Red, false);
-            first = false;
-        }
+        DrawDebugSphere(world, point.Location, 10.0f, 4, FColor::Blue);
+        //if (!first) {
+            DrawDebugLine(world, prevPoint.Location, point.Location, FColor::Red);
+            //first = false;
+        //}
         
         prevPoint = point;
     }

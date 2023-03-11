@@ -44,6 +44,11 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI)
     bool Landing = false;
 
+    //my code 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI)
+    double speed = 100.0;
+
+
 public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
     void AIStateInterrupted();

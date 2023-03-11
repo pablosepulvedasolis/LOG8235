@@ -20,9 +20,12 @@ void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
     const FNavPathPoint& segmentStart = points[MoveSegmentStartIndex];
     // UE_LOG(LogTemp, Warning, TEXT("FollowPathSegment"));
 
+    ASDTAIController* controller = dynamic_cast<ASDTAIController*>(GetOwner());
     if (SDTUtils::HasJumpFlag(segmentStart))
     {
         //update jump
+        controller->AtJumpSegment = true;
+        GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Blue, FString::Printf(TEXT("===========================")));
     }
     else
     {
@@ -43,6 +46,7 @@ void USDTPathFollowingComponent::SetMoveSegment(int32 segmentStartIndex)
     if (SDTUtils::HasJumpFlag(segmentStart) && FNavMeshNodeFlags(segmentStart.Flags).IsNavLink())
     {
         //Handle starting jump
+        Cast<UCharacterMovementComponent>(MovementComp)->SetMovementMode(MOVE_Flying);
     }
     else
     {
