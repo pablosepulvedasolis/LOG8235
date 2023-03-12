@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "DrawDebugHelpers.h"
+#include <Kismet/KismetMathLibrary.h>
 
 USDTPathFollowingComponent::USDTPathFollowingComponent(const FObjectInitializer& ObjectInitializer)
 {
@@ -52,6 +53,9 @@ void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
         }
 
         FVector pawnPos = pawn->GetActorLocation();
+        FRotator pawnRot = UKismetMathLibrary::FindLookAtRotation(pawnPos, end);
+        pawnRot.Pitch = 0;
+        pawn->SetActorRotation(pawnRot);
 
         if (pawnPos.Z >= 260) {
             controller->InAir = true;
