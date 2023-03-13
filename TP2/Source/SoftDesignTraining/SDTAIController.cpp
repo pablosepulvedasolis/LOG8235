@@ -64,9 +64,7 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
         {
             speed = 100.0;
             MoveToLocation(point);
-           
         }
-
     }
     else if (state == State::Chase) {
         ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
@@ -81,10 +79,7 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
         {
             MoveToLocation(point);
             speed = 300.0;
-
         }
-
-
     }
     OnMoveToTarget();
 

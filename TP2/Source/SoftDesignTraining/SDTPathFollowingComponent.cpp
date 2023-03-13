@@ -28,12 +28,12 @@ void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
     FVector end = segmentEnd.Location;
 
     ASDTAIController* controller = dynamic_cast<ASDTAIController*>(GetOwner());
+    AActor* pawn = controller->GetPawn();
     if (SDTUtils::HasJumpFlag(segmentStart))
     {
         //update jump
         controller->AtJumpSegment = true;
 
-        AActor* pawn = controller->GetPawn();
         UCurveFloat* jumpCurve = controller->JumpCurve;
         float jumpSpeed = controller->JumpSpeed;
         float jumpApexHeight = controller->JumpApexHeight;
