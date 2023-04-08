@@ -14,6 +14,6 @@ class SOFTDESIGNTRAINING_API UMyBTTask_FindRandomCollectible : public UBTTask_Bl
 {
 	GENERATED_BODY()
 
-	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent* OwnerComp, uint8* NodeMemory) const override;
+	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	
 };

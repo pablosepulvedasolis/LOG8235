@@ -13,9 +13,9 @@
 #include "SDTUtils.h"
 #include "EngineUtils.h"
 
-EBTNodeResult::Type UMyBTTask_FindRandomCollectible::ExecuteTask(UBehaviorTreeComponent* OwnerComp, uint8* NodeMemory) const
+EBTNodeResult::Type UMyBTTask_FindRandomCollectible::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    ASDTAIController* Controller = Cast<ASDTAIController>(OwnerComp->GetOwner());
+    ASDTAIController* Controller = Cast<ASDTAIController>(OwnerComp.GetOwner());
     if (Controller == nullptr) return EBTNodeResult::Failed;
 
     float closestSqrCollectibleDistance = 18446744073709551610.f;
@@ -29,8 +29,8 @@ EBTNodeResult::Type UMyBTTask_FindRandomCollectible::ExecuteTask(UBehaviorTreeCo
         int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
 
         ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
-        if (!collectibleActor)
-            return;
+        //if (!collectibleActor)
+        //    return;
 
         if (!collectibleActor->IsOnCooldown())
         {
