@@ -81,6 +81,7 @@ public:
 
     uint8 GetIsPlayerDetectedKeyID() const { return IsPlayerDetectedKeyID; };
     uint8 GetIsPlayerBuffedKeyID() const { return IsPlayerBuffedKeyID; };
+    uint8 GetPlayerLocationKeyID() const { return PlayerLocationKeyID; };
     virtual void OnPossess(APawn* pawn) override;
     UBehaviorTree* GetBehaviorTree() const { return m_aiBehaviorTree; }
 
@@ -97,6 +98,7 @@ private:
 
     uint8 IsPlayerDetectedKeyID;
     uint8 IsPlayerBuffedKeyID;
+    uint8 PlayerLocationKeyID;
 
 
 protected:

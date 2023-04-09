@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/Services/BTService_BlackboardBase.h"
+
+#include <SoftDesignTraining/SDTAIController.h>
+
 #include "MyBTService_TryDetectPlayer.generated.h"
 
 /**
@@ -18,4 +21,8 @@ class SOFTDESIGNTRAINING_API UMyBTService_TryDetectPlayer : public UBTService_Bl
 		UMyBTService_TryDetectPlayer();
 
 		virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+
+		FVector findBestFleeLocation(ASDTAIController* aiController);
+		FVector findRandomCollectibleLocation(ASDTAIController* aiController);
+		FVector findBestCollectibleLocation(ASDTAIController* aiController);
 };
