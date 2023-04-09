@@ -11,10 +11,19 @@
 #include "SDTUtils.h"
 #include "EngineUtils.h"
 
+#include "SoftDesignTrainingCharacter.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
+
 ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
 {
     m_PlayerInteractionBehavior = PlayerInteractionBehavior_Collect;
+
+    IsPlayerDetectedKeyID = 0;
+    IsPlayerBuffedKeyID = 0;
+    m_behaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorTreeComponent"));
+    m_blackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
 }
 
 void ASDTAIController::GoToBestTarget(float deltaTime)
@@ -359,5 +368,68 @@ void ASDTAIController::UpdatePlayerInteractionBehavior(const FHitResult& detecti
     {
         m_PlayerInteractionBehavior = currentBehavior;
         AIStateInterrupted();
+    }
+}
+
+void ASDTAIController::StartBehaviorTree(APawn* pawn)
+{
+    if (ASoftDesignTrainingCharacter* aiBaseCharacter = Cast<ASoftDesignTrainingCharacter>(pawn))
+    {
+        if (aiBaseCharacter->GetBehaviorTree())
+        {
+            m_behaviorTreeComponent->StartTree(*aiBaseCharacter->GetBehaviorTree(), EBTExecutionMode::Looped);
+        }
+    }
+}
+
+bool ASDTAIController::TryDetectPlayer()
+{
+    if (AtJumpSegment)
+        return false;
+
+    APawn* selfPawn = GetPawn();
+    if (!selfPawn)
+        return false;
+
+    ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+    if (!playerCharacter)
+        return false;
+
+    FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
+    FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
+
+    TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
+    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_PLAYER));
+
+    TArray<FHitResult> allDetectionHits;
+    GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(m_DetectionCapsuleRadius));
+
+    FHitResult detectionHit;
+    GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
+
+    PlayerInteractionBehavior currentBehavior = GetCurrentPlayerInteractionBehavior(detectionHit);
+
+    return detectionHit.GetComponent() && detectionHit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER;
+}
+
+void ASDTAIController::OnPossess(APawn* pawn)
+{
+    Super::OnPossess(pawn);
+
+    if (ASoftDesignTrainingCharacter* aiBaseCharacter = Cast<ASoftDesignTrainingCharacter>(pawn))
+    {
+        if (aiBaseCharacter->GetBehaviorTree())
+        {
+            m_blackboardComponent->InitializeBlackboard(*aiBaseCharacter->GetBehaviorTree()->BlackboardAsset);
+
+
+            IsPlayerDetectedKeyID = m_blackboardComponent->GetKeyID("IsChasingOrFleeing");
+            IsPlayerBuffedKeyID = m_blackboardComponent->GetKeyID("IsPlayerBuffed");
+
+            //Set this agent in the BT
+            m_blackboardComponent->SetValue<UBlackboardKeyType_Object>(m_blackboardComponent->GetKeyID("SelfActor"), pawn);
+
+            m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(IsPlayerDetectedKeyID, false);
+        }
     }
 }

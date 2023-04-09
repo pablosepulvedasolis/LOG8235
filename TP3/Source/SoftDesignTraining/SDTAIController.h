@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "BehaviorTree/BehaviorTreeComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
+
 #include "CoreMinimal.h"
 #include "SDTBaseAIController.h"
 #include "SDTAIController.generated.h"
@@ -44,6 +47,9 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI)
     bool Landing = false;
 
+    UPROPERTY(EditAnywhere, category = Behavior)
+    UBehaviorTree* m_aiBehaviorTree;
+
 protected:
 
     enum PlayerInteractionBehavior
@@ -70,10 +76,27 @@ public:
     void SetActorLocation(const FVector& targetLocation);
     void AIStateInterrupted();
 
+    void StartBehaviorTree(APawn* pawn);
+    bool TryDetectPlayer();
+
+    uint8 GetIsPlayerDetectedKeyID() const { return IsPlayerDetectedKeyID; };
+    uint8 GetIsPlayerBuffedKeyID() const { return IsPlayerBuffedKeyID; };
+    virtual void OnPossess(APawn* pawn) override;
+    UBehaviorTree* GetBehaviorTree() const { return m_aiBehaviorTree; }
+
 private:
     virtual void GoToBestTarget(float deltaTime) override;
     virtual void UpdatePlayerInteraction(float deltaTime) override;
     virtual void ShowNavigationPath() override;
+
+    UPROPERTY(transient)
+        UBehaviorTreeComponent* m_behaviorTreeComponent;
+
+    UPROPERTY(transient)
+        UBlackboardComponent* m_blackboardComponent;
+
+    uint8 IsPlayerDetectedKeyID;
+    uint8 IsPlayerBuffedKeyID;
 
 
 protected:
