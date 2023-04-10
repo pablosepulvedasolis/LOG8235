@@ -13,6 +13,7 @@
 #include "EngineUtils.h"
 #include <SoftDesignTraining/SDTCollectible.h>
 #include "NavigationSystem.h"
+#include <SoftDesignTraining/AiAgentGroupManager.h>
 
 UMyBTService_TryDetectPlayer::UMyBTService_TryDetectPlayer() {
 	bCreateNodeInstance = true;
@@ -20,24 +21,25 @@ UMyBTService_TryDetectPlayer::UMyBTService_TryDetectPlayer() {
 
 void UMyBTService_TryDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+    ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner());
+    if (aiController)
+    {
+        bool isPlayerDetected = aiController->TryDetectPlayer();
+        //DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), isPlayerDetected ? TEXT("Player detected") : TEXT("Player not detected"), aiController->GetPawn(), FColor::Blue, 0.4f, false);
+        OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerDetected"), isPlayerDetected);
 
-	if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
-	{
-		bool isPlayerDetected = aiController->TryDetectPlayer();
-		//DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), isPlayerDetected ? TEXT("Player detected") : TEXT("Player not detected"), aiController->GetPawn(), FColor::Blue, 0.4f, false);
-		OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerDetected"), isPlayerDetected);
+        //debug
+        //bool test = OwnerComp.GetBlackboardComponent()->GetValueAsBool(TEXT("IsPlayerDetected"));
+        //DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), test ? TEXT("Player detected") : TEXT("Player not detected"), aiController->GetPawn(), FColor::Blue);
 
-		//debug
-		//bool test = OwnerComp.GetBlackboardComponent()->GetValueAsBool(TEXT("IsPlayerDetected"));
-		//DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), test ? TEXT("Player detected") : TEXT("Player not detected"), aiController->GetPawn(), FColor::Blue);
+        bool isPlayerBuffed = SDTUtils::IsPlayerPoweredUp(GetWorld());
+        //DrawDebugString(GetWorld(), FVector(0.f, 10.f, 10.f), isPlayerBoosted ? TEXT("Player boosted") : TEXT("Player not boosted"), aiController->GetPawn(), FColor::Red, 0.4f, false);
+        OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerBuffed"), isPlayerBuffed);
 
-		bool isPlayerBuffed = SDTUtils::IsPlayerPoweredUp(GetWorld());
-		//DrawDebugString(GetWorld(), FVector(0.f, 10.f, 10.f), isPlayerBoosted ? TEXT("Player boosted") : TEXT("Player not boosted"), aiController->GetPawn(), FColor::Red, 0.4f, false);
-		OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerBuffed"), isPlayerBuffed);
-
-		ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-		FVector playerPosition = playerCharacter->GetActorLocation();
-		OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), playerPosition);
+        ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+        FVector playerPosition = playerCharacter->GetActorLocation();
+        OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), playerPosition);
+        DrawDebugSphere(aiController->GetPawn()->GetWorld(), playerPosition + FVector(0.f, 0.f, 100.f), 25.0f, 32, FColor::Red);
 
         FVector bestFleePosition = findBestFleeLocation(aiController);
         OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("BestFleeLocation"), bestFleePosition);
@@ -45,8 +47,20 @@ void UMyBTService_TryDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, u
         FVector collectiblePosition = findRandomCollectibleLocation(aiController);
         OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("CollectibleLocation"), collectiblePosition);
 
+        // group manage 
+        AiAgentGroupManager* aiManagerInstance = AiAgentGroupManager::GetInstance(); 
+        if (isPlayerDetected) {
+            
+            aiManagerInstance->RegisterAIAgent(aiController);
+            aiManagerInstance->DrawIndicatorSphere(aiController);
+        }
+        else {
+            aiManagerInstance->GetInstance()->UnregisterAIAgent(aiController);
+        }
+        //aiManagerInstance->DrawIndicatorSphere();
 
 
+       
 
 	}
 }
@@ -54,11 +68,11 @@ void UMyBTService_TryDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, u
 FVector UMyBTService_TryDetectPlayer::findBestFleeLocation(ASDTAIController* aiController) {
 
     float bestLocationScore = 0.f;
-    ASDTFleeLocation* bestFleeLocation = nullptr;
+    FVector bestFleeLocation = aiController->GetPawn()->GetActorLocation();
 
     ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-    /*if (!playerCharacter)
-        return;*/
+    if (!playerCharacter)
+        return bestFleeLocation;
 
     for (TActorIterator<ASDTFleeLocation> actorIterator(GetWorld(), ASDTFleeLocation::StaticClass()); actorIterator; ++actorIterator)
     {
@@ -79,14 +93,14 @@ FVector UMyBTService_TryDetectPlayer::findBestFleeLocation(ASDTAIController* aiC
             if (locationScore > bestLocationScore)
             {
                 bestLocationScore = locationScore;
-                bestFleeLocation = fleeLocation;
+                bestFleeLocation = fleeLocation->GetActorLocation();
             }
 
-            DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(locationScore), fleeLocation, FColor::Red, 5.f, false);
+           // DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(locationScore), fleeLocation, FColor::Red, 5.f, false);
         }
     }
 
-    return bestFleeLocation->GetActorLocation();
+    return bestFleeLocation;
 }
 
 FVector UMyBTService_TryDetectPlayer::findRandomCollectibleLocation(ASDTAIController* aiController) {
@@ -96,22 +110,25 @@ FVector UMyBTService_TryDetectPlayer::findRandomCollectibleLocation(ASDTAIContro
 
     FVector collectibleLocation = aiController->GetPawn()->GetActorLocation();
     bool search = true;
-    while (search)
-    {
-        int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
+    if (foundCollectibles.Num()>0){
 
-        ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
-        /*if (!collectibleActor)
-            return;*/
-
-        if (!collectibleActor->IsOnCooldown())
+        while (search)
         {
-            collectibleLocation = collectibleActor->GetActorLocation();
-            search = false;
+            int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
+
+            ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
+            if (!collectibleActor)
+                return collectibleLocation;
+
+            if (!collectibleActor->IsOnCooldown())
+            {
+                collectibleLocation = collectibleActor->GetActorLocation();
+                search = false;
+            }
+
         }
-
     }
-
+    
     return collectibleLocation;
 }
 
