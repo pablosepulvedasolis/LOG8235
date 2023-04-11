@@ -9,7 +9,8 @@ EBTNodeResult::Type UMyBTTask_IsPlayerBuffed::ExecuteTask(UBehaviorTreeComponent
 	if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
 	{
 		//bool isPlayerBuffed = OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Bool>(OwnerComp.GetBlackboardComponent()->GetKeyID("IsPlayerBuffed"));
-		bool isPlayerBuffed = OwnerComp.GetBlackboardComponent()->GetValueAsBool(FName("IsPlayerBuffed"));
+		//bool isPlayerBuffed = OwnerComp.GetBlackboardComponent()->GetValueAsBool(FName("IsPlayerBuffed"));
+		bool isPlayerBuffed = OwnerComp.GetBlackboardComponent()->GetValueAsBool(TEXT("IsPlayerBuffed"));
 		DrawDebugString(GetWorld(), FVector(100.f, 0.f, 10.f), isPlayerBuffed ? TEXT("Player powered up") : TEXT("Player not powered up"), aiController->GetPawn(), FColor::Blue, 0.4f, false);
 
 		if (isPlayerBuffed)

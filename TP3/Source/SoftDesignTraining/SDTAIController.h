@@ -63,9 +63,6 @@ protected:
     void UpdatePlayerInteractionBehavior(const FHitResult& detectionHit, float deltaTime);
     PlayerInteractionBehavior GetCurrentPlayerInteractionBehavior(const FHitResult& hit);
     bool HasLoSOnHit(const FHitResult& hit);
-    void MoveToRandomCollectible();
-    void MoveToPlayer();
-    void MoveToBestFleeLocation();
     void PlayerInteractionLoSUpdate();
     void OnPlayerInteractionNoLosDone();
     void OnMoveToTarget();
@@ -78,6 +75,10 @@ public:
 
     void StartBehaviorTree(APawn* pawn);
     bool TryDetectPlayer();
+    void MoveToRandomCollectible();
+    void MoveToBestCollectible();
+    void MoveToPlayer();
+    void MoveToBestFleeLocation();
 
     uint8 GetIsPlayerDetectedKeyID() const { return IsPlayerDetectedKeyID; };
     uint8 GetIsPlayerBuffedKeyID() const { return IsPlayerBuffedKeyID; };
