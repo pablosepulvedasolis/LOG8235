@@ -25,12 +25,10 @@ void UMyBTService_TryDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, u
     if (aiController)
     {
         bool isPlayerDetected = aiController->TryDetectPlayer();
-        //DrawDebugString(GetWorld(), FVector(100.f, 0.f, 10.f), isPlayerDetected ? TEXT("Try player detected") : TEXT("Try player not detected"), aiController->GetPawn(), FColor::Blue, 0.4f, false);
-
-        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(OwnerComp.GetBlackboardComponent()->GetKeyID("IsPlayerDetected"), isPlayerDetected);
+        OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerDetected"), isPlayerDetected);
 
         bool isPlayerBuffed = SDTUtils::IsPlayerPoweredUp(GetWorld());
-        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(OwnerComp.GetBlackboardComponent()->GetKeyID("IsPlayerBuffed"), isPlayerBuffed);
+        OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerBuffed"), isPlayerBuffed);
 
         // AI group manager
         AiAgentGroupManager* aiManagerInstance = AiAgentGroupManager::GetInstance();

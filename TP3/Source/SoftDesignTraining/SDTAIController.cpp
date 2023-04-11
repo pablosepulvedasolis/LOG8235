@@ -11,7 +11,6 @@
 #include "SDTUtils.h"
 #include "EngineUtils.h"
 
-#include "NavigationSystem.h"
 #include "SoftDesignTrainingCharacter.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
@@ -423,52 +422,11 @@ void ASDTAIController::OnPossess(APawn* pawn)
         {
             m_blackboardComponent->InitializeBlackboard(*aiBaseCharacter->GetBehaviorTree()->BlackboardAsset);
 
-
-            IsPlayerDetectedKeyID = m_blackboardComponent->GetKeyID("IsChasingOrFleeing");
+            IsPlayerDetectedKeyID = m_blackboardComponent->GetKeyID("IsPlayerDetected");
             IsPlayerBuffedKeyID = m_blackboardComponent->GetKeyID("IsPlayerBuffed");
 
-            //Set this agent in the BT
             m_blackboardComponent->SetValue<UBlackboardKeyType_Object>(m_blackboardComponent->GetKeyID("SelfActor"), pawn);
-
             m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(IsPlayerDetectedKeyID, false);
         }
     }
-}
-
-void ASDTAIController::MoveToBestCollectible()
-{
-    if (AtJumpSegment)
-        return;
-
-    float closestSqrCollectibleDistance = 18446744073709551610.f;
-    ASDTCollectible* closestCollectible = nullptr;
-
-    TArray<AActor*> foundCollectibles;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASDTCollectible::StaticClass(), foundCollectibles);
-
-    UNavigationSystemV1* navSys = UNavigationSystemV1::GetCurrent(GetWorld());
-
-    for (AActor* collectible : foundCollectibles)
-    {
-        ASDTCollectible* col = Cast<ASDTCollectible>(collectible);
-        if (col->IsOnCooldown()) continue;
-
-        UNavigationPath* path = navSys->FindPathToLocationSynchronously(GetWorld(), GetPawn()->GetActorLocation(), collectible->GetActorLocation());
-
-        double sum = 0;
-        FVector  prev;
-        for (FVector point : path->PathPoints)
-        {
-            sum += (point - prev).Size();
-            prev = point;
-        }
-        if (closestSqrCollectibleDistance > sum)
-        {
-            closestSqrCollectibleDistance = sum;
-            closestCollectible = col;
-        }
-    }
-    MoveToLocation(closestCollectible->GetActorLocation(), 0.5f, false, true, true, NULL, false);
-    OnMoveToTarget();
-    return;
 }

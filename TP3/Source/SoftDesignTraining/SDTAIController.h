@@ -76,7 +76,6 @@ public:
     void StartBehaviorTree(APawn* pawn);
     bool TryDetectPlayer();
     void MoveToRandomCollectible();
-    void MoveToBestCollectible();
     void MoveToPlayer();
     void MoveToBestFleeLocation();
 
