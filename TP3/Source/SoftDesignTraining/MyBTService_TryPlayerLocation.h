@@ -3,22 +3,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BehaviorTree/Services/BTService_BlackboardBase.h"
 
 #include <SoftDesignTraining/SDTAIController.h>
 
-#include "MyBTService_TryDetectPlayer.generated.h"
+#include "BehaviorTree/Services/BTService_BlackboardBase.h"
+#include "MyBTService_TryPlayerLocation.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SOFTDESIGNTRAINING_API UMyBTService_TryDetectPlayer : public UBTService_BlackboardBase
+class SOFTDESIGNTRAINING_API UMyBTService_TryPlayerLocation : public UBTService_BlackboardBase
 {
 	GENERATED_BODY()
-	
+
 	public:
-		UMyBTService_TryDetectPlayer();
+		UMyBTService_TryPlayerLocation();
 
 		virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 };

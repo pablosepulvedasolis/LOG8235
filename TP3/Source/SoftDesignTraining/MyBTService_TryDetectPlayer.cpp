@@ -25,145 +25,24 @@ void UMyBTService_TryDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, u
     if (aiController)
     {
         bool isPlayerDetected = aiController->TryDetectPlayer();
-        //DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), isPlayerDetected ? TEXT("Player detected") : TEXT("Player not detected"), aiController->GetPawn(), FColor::Blue, 0.4f, false);
-        OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerDetected"), isPlayerDetected);
+        //DrawDebugString(GetWorld(), FVector(100.f, 0.f, 10.f), isPlayerDetected ? TEXT("Try player detected") : TEXT("Try player not detected"), aiController->GetPawn(), FColor::Blue, 0.4f, false);
 
-        //debug
-        //bool test = OwnerComp.GetBlackboardComponent()->GetValueAsBool(TEXT("IsPlayerDetected"));
-        //DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), test ? TEXT("Player detected") : TEXT("Player not detected"), aiController->GetPawn(), FColor::Blue);
+        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(OwnerComp.GetBlackboardComponent()->GetKeyID("IsPlayerDetected"), isPlayerDetected);
 
         bool isPlayerBuffed = SDTUtils::IsPlayerPoweredUp(GetWorld());
-        //DrawDebugString(GetWorld(), FVector(0.f, 10.f, 10.f), isPlayerBoosted ? TEXT("Player boosted") : TEXT("Player not boosted"), aiController->GetPawn(), FColor::Red, 0.4f, false);
-        OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerBuffed"), isPlayerBuffed);
+        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(OwnerComp.GetBlackboardComponent()->GetKeyID("IsPlayerBuffed"), isPlayerBuffed);
 
-        ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-        FVector playerPosition = playerCharacter->GetActorLocation();
-        OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), playerPosition);
-        DrawDebugSphere(aiController->GetPawn()->GetWorld(), playerPosition + FVector(0.f, 0.f, 100.f), 25.0f, 32, FColor::Red);
-
-        FVector bestFleePosition = findBestFleeLocation(aiController);
-        OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("BestFleeLocation"), bestFleePosition);
-
-        FVector collectiblePosition = findRandomCollectibleLocation(aiController);
-        OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("CollectibleLocation"), collectiblePosition);
-
-        // group manage 
-        AiAgentGroupManager* aiManagerInstance = AiAgentGroupManager::GetInstance(); 
-        if (isPlayerDetected) {
-            
+        // AI group manager
+        AiAgentGroupManager* aiManagerInstance = AiAgentGroupManager::GetInstance();
+        if (isPlayerDetected) 
+        {
             aiManagerInstance->RegisterAIAgent(aiController);
             aiManagerInstance->DrawIndicatorSphere(aiController);
         }
-        else {
+        else 
+        {
             aiManagerInstance->GetInstance()->UnregisterAIAgent(aiController);
         }
         //aiManagerInstance->DrawIndicatorSphere();
-
-
-       
-
 	}
-}
-
-FVector UMyBTService_TryDetectPlayer::findBestFleeLocation(ASDTAIController* aiController) {
-
-    float bestLocationScore = 0.f;
-    FVector bestFleeLocation = aiController->GetPawn()->GetActorLocation();
-
-    ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-    if (!playerCharacter)
-        return bestFleeLocation;
-
-    for (TActorIterator<ASDTFleeLocation> actorIterator(GetWorld(), ASDTFleeLocation::StaticClass()); actorIterator; ++actorIterator)
-    {
-        ASDTFleeLocation* fleeLocation = Cast<ASDTFleeLocation>(*actorIterator);
-        if (fleeLocation)
-        {
-            float distToFleeLocation = FVector::Dist(fleeLocation->GetActorLocation(), playerCharacter->GetActorLocation());
-
-            FVector selfToPlayer = playerCharacter->GetActorLocation() - aiController->GetPawn()->GetActorLocation();
-            selfToPlayer.Normalize();
-
-            FVector selfToFleeLocation = fleeLocation->GetActorLocation() - aiController->GetPawn()->GetActorLocation();
-            selfToFleeLocation.Normalize();
-
-            float fleeLocationToPlayerAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(selfToPlayer, selfToFleeLocation)));
-            float locationScore = distToFleeLocation + fleeLocationToPlayerAngle * 100.f;
-
-            if (locationScore > bestLocationScore)
-            {
-                bestLocationScore = locationScore;
-                bestFleeLocation = fleeLocation->GetActorLocation();
-            }
-
-           // DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(locationScore), fleeLocation, FColor::Red, 5.f, false);
-        }
-    }
-
-    return bestFleeLocation;
-}
-
-FVector UMyBTService_TryDetectPlayer::findRandomCollectibleLocation(ASDTAIController* aiController) {
-
-    TArray<AActor*> foundCollectibles;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASDTCollectible::StaticClass(), foundCollectibles);
-
-    FVector collectibleLocation = aiController->GetPawn()->GetActorLocation();
-    bool search = true;
-    if (foundCollectibles.Num()>0){
-
-        while (search)
-        {
-            int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
-
-            ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
-            if (!collectibleActor)
-                return collectibleLocation;
-
-            if (!collectibleActor->IsOnCooldown())
-            {
-                collectibleLocation = collectibleActor->GetActorLocation();
-                search = false;
-            }
-
-        }
-    }
-    
-    return collectibleLocation;
-}
-
-FVector UMyBTService_TryDetectPlayer::findBestCollectibleLocation(ASDTAIController* aiController) {
-
-    float closestSqrCollectibleDistance = 18446744073709551610.f;
-    ASDTCollectible* closestCollectible = nullptr;
-
-    TArray<AActor*> foundCollectibles;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASDTCollectible::StaticClass(), foundCollectibles);
-
-    UNavigationSystemV1* navSys = UNavigationSystemV1::GetCurrent(GetWorld());
-   
-    for (AActor* collectible : foundCollectibles)
-    {
-        ASDTCollectible* col = Cast<ASDTCollectible>(collectible);
-        if (col->IsOnCooldown()) continue;
-
-        UNavigationPath* path = navSys->FindPathToLocationSynchronously(GetWorld(), aiController->GetPawn()->GetActorLocation(), collectible->GetActorLocation());
-
-        double sum = 0;
-        FVector  prev;
-        for (FVector point : path->PathPoints)
-        {
-            sum += (point - prev).Size();
-            prev = point;
-        }
-        if (closestSqrCollectibleDistance > sum) {
-            
-            closestSqrCollectibleDistance = sum;
-            closestCollectible = col;
-            
-        }
-    }
-
-    return closestCollectible->GetActorLocation();
-
 }

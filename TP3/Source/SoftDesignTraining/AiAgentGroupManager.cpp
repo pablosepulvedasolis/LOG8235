@@ -29,7 +29,7 @@ void AiAgentGroupManager::Destroy()
 
 void AiAgentGroupManager::RegisterAIAgent(ASDTAIController* aiAgent)
 {
-    m_registeredAgents.Add(aiAgent);
+    m_registeredAgents.AddUnique(aiAgent);
 }
 
 void AiAgentGroupManager::UnregisterAIAgent(ASDTAIController* aiAgent)
