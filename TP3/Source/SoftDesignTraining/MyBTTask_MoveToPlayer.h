@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <SoftDesignTraining/SDTAIController.h>
+#include "AIController.h"
+
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
 #include "MyBTTask_MoveToPlayer.generated.h"
@@ -14,5 +17,7 @@ class SOFTDESIGNTRAINING_API UMyBTTask_MoveToPlayer : public UBTTask_BlackboardB
 {
 	GENERATED_BODY()
 	
-		virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+		public:
+			virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+			FVector GetPlayerLocation(ASDTAIController* aiController);
 };
