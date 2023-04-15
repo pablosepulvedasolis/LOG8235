@@ -14,6 +14,7 @@
 #include <SoftDesignTraining/SDTCollectible.h>
 #include "NavigationSystem.h"
 #include <SoftDesignTraining/AiAgentGroupManager.h>
+#include <chrono>
 
 UMyBTService_TryDetectPlayer::UMyBTService_TryDetectPlayer() {
 	bCreateNodeInstance = true;
@@ -24,8 +25,14 @@ void UMyBTService_TryDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, u
     ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner());
     if (aiController)
     {
+        auto startTime = std::chrono::system_clock::now();
+
         bool isPlayerDetected = aiController->TryDetectPlayer();
         OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerDetected"), isPlayerDetected);
+
+        auto stopTime = std::chrono::system_clock::now();
+        long duration = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime).count();
+        DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "Player CPU: " + FString::FromInt(duration) + " ms", aiController->GetPawn(), FColor::Blue, 0.4f, false);
 
         bool isPlayerBuffed = SDTUtils::IsPlayerPoweredUp(GetWorld());
         OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerBuffed"), isPlayerBuffed);
