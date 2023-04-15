@@ -409,7 +409,35 @@ bool ASDTAIController::TryDetectPlayer()
 
     PlayerInteractionBehavior currentBehavior = GetCurrentPlayerInteractionBehavior(detectionHit);
 
-    return detectionHit.GetComponent() && detectionHit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER;
+    if (currentBehavior != m_PlayerInteractionBehavior)
+    {
+        m_PlayerInteractionBehavior = currentBehavior;
+        AIStateInterrupted();
+    }
+
+    if (GetMoveStatus() == EPathFollowingStatus::Idle)
+    {
+        m_ReachedTarget = true;
+    }
+
+    FString debugString = "";
+
+    switch (m_PlayerInteractionBehavior)
+    {
+    case PlayerInteractionBehavior_Chase:
+        debugString = "Chase";
+        break;
+    case PlayerInteractionBehavior_Flee:
+        debugString = "Flee";
+        break;
+    case PlayerInteractionBehavior_Collect:
+        debugString = "Collect";
+        break;
+    }
+
+    DrawDebugString(GetWorld(), FVector(200.f, 0.f, 10.f), debugString, GetPawn(), FColor::Orange, 0.f, false);
+
+    return (!currentBehavior == PlayerInteractionBehavior::PlayerInteractionBehavior_Collect);
 }
 
 void ASDTAIController::OnPossess(APawn* pawn)

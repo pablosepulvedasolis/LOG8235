@@ -23,7 +23,7 @@ EBTNodeResult::Type UMyBTTask_MoveToFlee::ExecuteTask(UBehaviorTreeComponent& Ow
         
         auto stopTime = std::chrono::system_clock::now();
         long duration = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime).count();
-        DrawDebugString(GetWorld(), FVector(100.f, 0.f, 10.f), "Flee CPU: " + FString::FromInt(duration) + " ms", aiController->GetPawn(), FColor::Red, 0.05f, false);
+        DrawDebugString(GetWorld(), FVector(100.f, 0.f, 10.f), "Flee calculation CPU: " + FString::FromInt(duration) + " ms", aiController->GetPawn(), FColor::Red, 1.f, false);
         return EBTNodeResult::Succeeded;
 	}
 	return EBTNodeResult::Failed;

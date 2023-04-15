@@ -26,7 +26,7 @@ EBTNodeResult::Type UMyBTTask_MoveToCollectible::ExecuteTask(UBehaviorTreeCompon
         
         auto stopTime = std::chrono::system_clock::now();
         long duration = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime).count();
-        DrawDebugString(GetWorld(), FVector(100.f, 0.f, 10.f), "Collectible CPU: " + FString::FromInt(duration) + " ms", aiController->GetPawn(), FColor::Orange, 1.f, false);
+        DrawDebugString(GetWorld(), FVector(100.f, 0.f, 10.f), "Collectible calculation CPU: " + FString::FromInt(duration) + " ms", aiController->GetPawn(), FColor::Orange, 1.f, false);
         return EBTNodeResult::Succeeded;
 	}
 	return EBTNodeResult::Failed;
