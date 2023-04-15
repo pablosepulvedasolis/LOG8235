@@ -25,7 +25,7 @@ void UMyBTService_TryFleeLocation::TickNode(UBehaviorTreeComponent& OwnerComp, u
     if (aiController)
     {
         FVector bestFleeLocation = findBestFleeLocation(aiController);
-        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(OwnerComp.GetBlackboardComponent()->GetKeyID("BestFleeLocation"), bestFleeLocation);
+        OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("BestFleeLocation"), bestFleeLocation);
         //OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("BestFleeLocation"), bestFleeLocation);
     }
 }

@@ -17,6 +17,8 @@ EBTNodeResult::Type UMyBTTask_MoveToPlayer::ExecuteTask(UBehaviorTreeComponent& 
 	{
 		FVector playerLocation = GetPlayerLocation(aiController);
 		OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), playerLocation);
+		//DrawDebugSphere(GetWorld(), playerLocation + FVector(0.f, 0.f, 100.f), 25.f,32, FColor::Red, false, NULL, NULL, NULL);
+		aiController->MoveTo(playerLocation);
 		return EBTNodeResult::Succeeded;
 	}
 	return EBTNodeResult::Failed;

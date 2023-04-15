@@ -21,4 +21,5 @@ class SOFTDESIGNTRAINING_API UMyBTService_TryDetectPlayer : public UBTService_Bl
 		UMyBTService_TryDetectPlayer();
 
 		virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+		
 };

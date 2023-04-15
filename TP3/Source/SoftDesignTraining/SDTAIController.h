@@ -50,6 +50,8 @@ public:
     UPROPERTY(EditAnywhere, category = Behavior)
     UBehaviorTree* m_aiBehaviorTree;
 
+    bool reached = true;
+
 protected:
 
     enum PlayerInteractionBehavior

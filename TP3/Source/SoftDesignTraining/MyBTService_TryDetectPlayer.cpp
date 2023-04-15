@@ -22,25 +22,32 @@ UMyBTService_TryDetectPlayer::UMyBTService_TryDetectPlayer() {
 void UMyBTService_TryDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
     ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner());
-    if (aiController)
+    if (!aiController)
+        return;
+
+ 
+    bool isPlayerDetected = aiController->TryDetectPlayer();
+        //bool isPlayerDetected = IsVisible(pawn, playerCharacter);
+
+    OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerDetected"), isPlayerDetected);
+
+    bool isPlayerBuffed = SDTUtils::IsPlayerPoweredUp(GetWorld());
+    OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerBuffed"), isPlayerBuffed);
+
+
+    // AI group manager
+     AiAgentGroupManager* aiManagerInstance = AiAgentGroupManager::GetInstance();
+    if (isPlayerDetected) 
     {
-        bool isPlayerDetected = aiController->TryDetectPlayer();
-        OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerDetected"), isPlayerDetected);
+        aiManagerInstance->RegisterAIAgent(aiController);
+        aiManagerInstance->DrawIndicatorSphere(aiController);
+    }
+    else 
+    {
+        aiManagerInstance->GetInstance()->UnregisterAIAgent(aiController);
+    }
+    //aiManagerInstance->DrawIndicatorSphere();
 
-        bool isPlayerBuffed = SDTUtils::IsPlayerPoweredUp(GetWorld());
-        OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsPlayerBuffed"), isPlayerBuffed);
-
-        // AI group manager
-        AiAgentGroupManager* aiManagerInstance = AiAgentGroupManager::GetInstance();
-        if (isPlayerDetected) 
-        {
-            aiManagerInstance->RegisterAIAgent(aiController);
-            aiManagerInstance->DrawIndicatorSphere(aiController);
-        }
-        else 
-        {
-            aiManagerInstance->GetInstance()->UnregisterAIAgent(aiController);
-        }
-        //aiManagerInstance->DrawIndicatorSphere();
-	}
 }
+
+

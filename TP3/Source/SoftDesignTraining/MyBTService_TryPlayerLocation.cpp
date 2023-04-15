@@ -26,7 +26,7 @@ void UMyBTService_TryPlayerLocation::TickNode(UBehaviorTreeComponent& OwnerComp,
     {
         ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
         FVector playerLocation = playerCharacter->GetActorLocation();
-        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(OwnerComp.GetBlackboardComponent()->GetKeyID("PlayerLocation"), playerLocation);
+        OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), playerLocation);
         //OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), playerLocation);
         DrawDebugSphere(aiController->GetPawn()->GetWorld(), playerLocation + FVector(0.f, 0.f, 100.f), 25.0f, 32, FColor::Red);
     }

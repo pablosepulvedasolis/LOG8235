@@ -17,6 +17,7 @@ EBTNodeResult::Type UMyBTTask_MoveToFlee::ExecuteTask(UBehaviorTreeComponent& Ow
 	{
 		FVector fleeLocation = GetFleeLocation(aiController);
 		OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("BestFleeLocation"), fleeLocation);
+        aiController->MoveTo(fleeLocation);
 		return EBTNodeResult::Succeeded;
 	}
 	return EBTNodeResult::Failed;

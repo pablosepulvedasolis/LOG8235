@@ -21,4 +21,5 @@ class SOFTDESIGNTRAINING_API UMyBTService_TryPickUpLocation : public UBTService_
 
 		virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 		FVector findBestCollectibleLocation(ASDTAIController* aiController);
+		FVector GetRandomCollectibleLocation(ASDTAIController* aiController);
 };

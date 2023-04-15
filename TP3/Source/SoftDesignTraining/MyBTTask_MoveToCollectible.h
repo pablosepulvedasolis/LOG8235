@@ -19,5 +19,4 @@ class SOFTDESIGNTRAINING_API UMyBTTask_MoveToCollectible : public UBTTask_Blackb
 	
 	public:
 		virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-		FVector GetBestCollectibleLocation(ASDTAIController* aiController);
 };

@@ -22,12 +22,55 @@ UMyBTService_TryPickUpLocation::UMyBTService_TryPickUpLocation() {
 void UMyBTService_TryPickUpLocation::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
     ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner());
+   
     if (aiController)
     {
-        FVector collectibleLocation = findBestCollectibleLocation(aiController);
-        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(OwnerComp.GetBlackboardComponent()->GetKeyID("CollectibleLocation"), collectibleLocation);
-        //OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("CollectibleLocation"), collectibleLocation);
+    
+        FVector location = OwnerComp.GetBlackboardComponent()->GetValueAsVector(TEXT("CollectibleLocation"));
+        
+
+        if (aiController->reached){
+
+          
+            FVector collectibleLocation = GetRandomCollectibleLocation(aiController);
+            OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("CollectibleLocation"), collectibleLocation);
+            aiController->reached = false;
+          
+
+        }
+       
+       
     }
+}
+
+
+FVector UMyBTService_TryPickUpLocation::GetRandomCollectibleLocation(ASDTAIController* aiController) {
+
+    TArray<AActor*> foundCollectibles;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASDTCollectible::StaticClass(), foundCollectibles);
+
+    FVector collectibleLocation = aiController->GetPawn()->GetActorLocation();
+    bool search = true;
+    if (foundCollectibles.Num() > 0) {
+
+        while (search)
+        {
+            int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
+
+            ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
+            if (!collectibleActor)
+                return collectibleLocation;
+
+            if (!collectibleActor->IsOnCooldown())
+            {
+                collectibleLocation = collectibleActor->GetActorLocation();
+                search = false;
+            }
+
+        }
+    }
+
+    return collectibleLocation;
 }
 
 FVector UMyBTService_TryPickUpLocation::findBestCollectibleLocation(ASDTAIController* aiController) 

@@ -16,42 +16,18 @@ EBTNodeResult::Type UMyBTTask_MoveToCollectible::ExecuteTask(UBehaviorTreeCompon
 	{
         if (aiController->AtJumpSegment)
             return EBTNodeResult::Failed;
-        FVector collectibleLocation = GetBestCollectibleLocation(aiController);
-        OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("CollectibleLocation"), collectibleLocation);
+        FVector collectibleLocation = OwnerComp.GetBlackboardComponent()->GetValueAsVector(TEXT("CollectibleLocation"));
+      
+        if ((collectibleLocation - aiController->GetPawn()->GetActorLocation()).Size() <= 100.f) {
+            aiController->reached = true;
+        }
+        else {
+
+            aiController->MoveToLocation(collectibleLocation);
+        }
+
 		return EBTNodeResult::Succeeded;
 	}
 	return EBTNodeResult::Failed;
 }
 
-FVector UMyBTTask_MoveToCollectible::GetBestCollectibleLocation(ASDTAIController* aiController)
-{
-    float closestSqrCollectibleDistance = 18446744073709551610.f;
-    ASDTCollectible* closestCollectible = nullptr;
-
-    TArray<AActor*> foundCollectibles;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASDTCollectible::StaticClass(), foundCollectibles);
-
-    UNavigationSystemV1* navSys = UNavigationSystemV1::GetCurrent(GetWorld());
-
-    for (AActor* collectible : foundCollectibles)
-    {
-        ASDTCollectible* col = Cast<ASDTCollectible>(collectible);
-        if (col->IsOnCooldown()) continue;
-
-        UNavigationPath* path = navSys->FindPathToLocationSynchronously(GetWorld(), aiController->GetPawn()->GetActorLocation(), collectible->GetActorLocation());
-
-        double sum = 0;
-        FVector  prev;
-        for (FVector point : path->PathPoints)
-        {
-            sum += (point - prev).Size();
-            prev = point;
-        }
-        if (closestSqrCollectibleDistance > sum)
-        {
-            closestSqrCollectibleDistance = sum;
-            closestCollectible = col;
-        }
-    }
-    return closestCollectible->GetActorLocation();
-}
