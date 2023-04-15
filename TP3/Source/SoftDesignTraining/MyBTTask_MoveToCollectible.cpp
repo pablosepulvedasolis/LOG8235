@@ -9,6 +9,8 @@
 #include "SDTPathFollowingComponent.h"
 #include <SoftDesignTraining/SDTCollectible.h>
 #include "NavigationSystem.h"
+#include <chrono>
+#include "DrawDebugHelpers.h"
 
 EBTNodeResult::Type UMyBTTask_MoveToCollectible::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -16,6 +18,7 @@ EBTNodeResult::Type UMyBTTask_MoveToCollectible::ExecuteTask(UBehaviorTreeCompon
 	{
         if (aiController->AtJumpSegment)
             return EBTNodeResult::Failed;
+        auto startTime = std::chrono::system_clock::now();
         FVector collectibleLocation = OwnerComp.GetBlackboardComponent()->GetValueAsVector(TEXT("CollectibleLocation"));
       
         if ((collectibleLocation - aiController->GetPawn()->GetActorLocation()).Size() <= 100.f) {
@@ -25,7 +28,8 @@ EBTNodeResult::Type UMyBTTask_MoveToCollectible::ExecuteTask(UBehaviorTreeCompon
 
             aiController->MoveToLocation(collectibleLocation);
         }
-
+        auto stopTime = std::chrono::system_clock::now();
+        long duration = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime).count();
 		return EBTNodeResult::Succeeded;
 	}
 	return EBTNodeResult::Failed;
