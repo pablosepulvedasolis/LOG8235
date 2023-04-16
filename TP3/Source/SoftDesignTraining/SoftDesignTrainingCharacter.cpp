@@ -58,5 +58,6 @@ void ASoftDesignTrainingCharacter::Die()
     {
         controller->AIStateInterrupted();
         controller->reached = true;
+        controller->AtJumpSegment = false;
     }
 }

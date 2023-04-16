@@ -23,7 +23,7 @@ UMyBTService_TryDetectPlayer::UMyBTService_TryDetectPlayer() {
 void UMyBTService_TryDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
     ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner());
-    if (!aiController) retunr;
+    if (!aiController) return;
     
     auto startTime = std::chrono::system_clock::now();
 
